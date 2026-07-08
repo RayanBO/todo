@@ -1,0 +1,2336 @@
+<!doctype html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+        <title>TODO</title>
+        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+        <style>
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+            :root {
+                --bg: #f6f7fb;
+                --surface: #fff;
+                --border: #eceef4;
+                --border2: #e4e7f0;
+                --text: #12131a;
+                --text2: #767b8c;
+                --text3: #a1a5b3;
+                --primary: #6d5ce6;
+                --primary-h: #5b4bd1;
+                --primary-tint: #eeecfd;
+                --todo: #8b5cf6;
+                --inprogress: #3b82f6;
+                --done: #22c55e;
+                --blocked: #ef4444;
+                --radius: 10px;
+                --radius-sm: 6px;
+                --shadow:
+                    0 1px 2px rgba(16, 24, 40, 0.04),
+                    0 2px 6px rgba(16, 24, 40, 0.05);
+                --prio-h-bg: #fee2e2;
+                --prio-h-t: #dc2626;
+                --prio-m-bg: #fef3c7;
+                --prio-m-t: #b45309;
+                --prio-l-bg: #eef0f5;
+                --prio-l-t: #6b7280;
+            }
+            body {
+                font-family:
+                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+                    Oxygen, sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                height: 100vh;
+                display: flex;
+                flex-direction: column;
+                font-size: 14px;
+            }
+
+            /* ── Header ── */
+            header {
+                background: var(--surface);
+                border-bottom: 1px solid var(--border);
+                flex-shrink: 0;
+            }
+            .h-row1 {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 14px 20px;
+                border-bottom: 1px solid var(--border);
+            }
+            .logo {
+                width: 32px;
+                height: 32px;
+                border-radius: 9px;
+                background: linear-gradient(135deg, var(--primary), #8b7cf0);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-weight: 800;
+                font-size: 15px;
+                flex-shrink: 0;
+            }
+            .h-row1 h1 {
+                font-size: 16px;
+                font-weight: 700;
+                margin-right: auto;
+            }
+            .avatars {
+                display: flex;
+                align-items: center;
+            }
+            .av {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: 2px solid var(--surface);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: 700;
+                color: #fff;
+                margin-left: -8px;
+                object-fit: cover;
+                flex-shrink: 0;
+            }
+            .av:first-child {
+                margin-left: 0;
+            }
+            .av-more {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: 2px solid var(--surface);
+                background: var(--bg);
+                color: var(--text2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                font-weight: 700;
+                margin-left: -8px;
+            }
+            .av-add {
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                border: 1.5px dashed var(--text3);
+                background: var(--surface);
+                color: var(--text2);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 14px;
+                cursor: pointer;
+                margin-left: 6px;
+                transition: 0.15s;
+            }
+            .av-add:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+            .h-row2 {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 20px;
+                flex-wrap: wrap;
+            }
+            .tabs {
+                display: flex;
+                gap: 2px;
+            }
+            .tabs button {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 8px 14px;
+                border: none;
+                background: none;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--text2);
+                border-bottom: 2px solid transparent;
+                transition: 0.15s;
+            }
+            .tabs button:hover {
+                color: var(--text);
+            }
+            .tabs button.act {
+                color: var(--primary);
+                border-color: var(--primary);
+            }
+            .h-row2 .spacer {
+                flex: 1;
+            }
+            .search {
+                position: relative;
+            }
+            .search input {
+                width: 220px;
+                padding: 7px 10px 7px 30px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                font-size: 12px;
+                font-family: inherit;
+                background: var(--bg);
+            }
+            .search input:focus {
+                outline: none;
+                border-color: var(--primary);
+                background: var(--surface);
+            }
+            .search svg {
+                position: absolute;
+                left: 9px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text3);
+            }
+
+            .btn {
+                padding: 7px 13px;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border2);
+                background: var(--surface);
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 600;
+                color: var(--text);
+                transition: 0.15s;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .btn:hover {
+                border-color: var(--text3);
+            }
+            .btn-pri {
+                background: var(--text);
+                color: #fff;
+                border-color: var(--text);
+            }
+            .btn-pri:hover {
+                background: #000;
+            }
+            .btn-sm {
+                padding: 4px 9px;
+                font-size: 11px;
+            }
+            .btn-danger {
+                color: var(--blocked);
+                border-color: #fecaca;
+            }
+            .btn-danger:hover {
+                background: #fef2f2;
+            }
+
+            .filter-wrap {
+                position: relative;
+            }
+            .filter-pop {
+                display: none;
+                position: absolute;
+                top: calc(100% + 6px);
+                right: 0;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                box-shadow: 0 12px 30px rgba(16, 24, 40, 0.12);
+                padding: 12px;
+                width: 170px;
+                z-index: 100;
+            }
+            .filter-pop.open {
+                display: block;
+            }
+            .filter-pop .fp-title {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text2);
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+                margin-bottom: 8px;
+            }
+            .filter-pop label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                font-size: 12.5px;
+                padding: 5px 2px;
+                cursor: pointer;
+                color: var(--text);
+            }
+
+            /* ── List view ── */
+            #lv {
+                flex: 1;
+                overflow-y: auto;
+                padding: 16px 20px;
+            }
+            #lv .empty {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 200px;
+                color: var(--text2);
+                gap: 6px;
+                font-size: 14px;
+            }
+            .sg {
+                margin-bottom: 18px;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                overflow: hidden;
+            }
+            .sh {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 14px;
+                font-size: 12.5px;
+                font-weight: 700;
+                background: #fbfbfd;
+                border-bottom: 1px solid var(--border);
+                user-select: none;
+            }
+            .sh .chev {
+                cursor: pointer;
+                color: var(--text3);
+                transition: transform 0.15s;
+                display: flex;
+            }
+            .sh.collapsed .chev {
+                transform: rotate(-90deg);
+            }
+            .sh .cnt {
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text2);
+                background: var(--bg);
+                border-radius: 20px;
+                padding: 1px 7px;
+            }
+            .sh .add-in {
+                margin-left: auto;
+                background: none;
+                border: none;
+                color: var(--text2);
+                cursor: pointer;
+                font-size: 16px;
+                width: 22px;
+                height: 22px;
+                border-radius: 5px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .sh .add-in:hover {
+                background: var(--bg);
+                color: var(--primary);
+            }
+            .sd {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .sd.t {
+                background: var(--todo);
+            }
+            .sd.e {
+                background: var(--inprogress);
+            }
+            .sd.d {
+                background: var(--done);
+            }
+            .sd.b {
+                background: var(--blocked);
+            }
+
+            .col-head {
+                display: grid;
+                grid-template-columns: 26px 1fr 130px 150px 100px 96px 24px;
+                gap: 10px;
+                padding: 8px 14px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--text2);
+                border-bottom: 1px solid var(--border);
+            }
+            .col-head span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+            .task-item {
+                border-bottom: 1px solid var(--border);
+            }
+            .task-item:last-child {
+                border-bottom: none;
+            }
+            .task-row {
+                display: grid;
+                grid-template-columns: 26px 1fr 130px 150px 100px 96px 24px;
+                gap: 10px;
+                padding: 13px 14px 11px;
+                align-items: flex-start;
+                cursor: pointer;
+                transition: 0.1s;
+            }
+            .task-row:hover {
+                background: #fafafe;
+            }
+            .task-row input[type="checkbox"] {
+                width: 15px;
+                height: 15px;
+                accent-color: var(--primary);
+                cursor: pointer;
+            }
+            .t-name {
+                font-size: 13px;
+                font-weight: 600;
+                white-space: pre-wrap;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .t-name.t-name-multi {
+                align-items: flex-start;
+            }
+            .t-name .idtag {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text3);
+                font-family: "SF Mono", monospace;
+                flex-shrink: 0;
+            }
+            .t-est {
+                font-size: 11.5px;
+                color: var(--text2);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 10.5px;
+                font-weight: 600;
+                padding: 3px 8px;
+                border-radius: 5px;
+                white-space: nowrap;
+            }
+            .chip .dot {
+                width: 5px;
+                height: 5px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
+            .type-wrap {
+                display: flex;
+                gap: 4px;
+                flex-wrap: nowrap;
+                overflow: hidden;
+            }
+            .people {
+                display: flex;
+                align-items: center;
+            }
+            .people .av {
+                width: 22px;
+                height: 22px;
+                font-size: 9px;
+            }
+            .people .av-more {
+                width: 22px;
+                height: 22px;
+                font-size: 9px;
+            }
+            .prio-pill {
+                font-size: 10.5px;
+                font-weight: 700;
+                padding: 3px 9px;
+                border-radius: 20px;
+                text-transform: none;
+                white-space: nowrap;
+            }
+            .prio-none {
+                color: var(--text3);
+                font-size: 12px;
+            }
+            .expander {
+                width: 24px;
+                height: 24px;
+                border: none;
+                background: none;
+                color: var(--text3);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: transform 0.15s;
+                border-radius: 5px;
+            }
+            .expander:hover {
+                background: var(--bg);
+                color: var(--text);
+            }
+            .task-item.open .expander {
+                transform: rotate(90deg);
+            }
+
+            .task-detail {
+                display: none;
+                padding: 0 14px 16px 50px;
+                border-top: 1px dashed var(--border);
+            }
+            .task-item.open .task-detail {
+                display: block;
+                padding-top: 12px;
+            }
+            .td-desc {
+                font-size: 13px;
+                line-height: 1.55;
+                color: var(--text);
+                white-space: pre-wrap;
+                margin-bottom: 10px;
+            }
+            .td-meta {
+                display: flex;
+                gap: 16px;
+                flex-wrap: wrap;
+                font-size: 11.5px;
+                color: var(--text2);
+                margin-bottom: 10px;
+            }
+            .td-meta strong {
+                color: var(--text);
+            }
+            .td-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                margin-bottom: 10px;
+            }
+            .td-label {
+                font-size: 10.5px;
+                font-weight: 700;
+                color: var(--text2);
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                margin-right: 2px;
+            }
+            .td-status select {
+                font-size: 11.5px;
+                padding: 4px 8px;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border2);
+                background: var(--surface);
+                font-family: inherit;
+                font-weight: 600;
+            }
+            .td-br {
+                font-size: 12px;
+                color: var(--blocked);
+                padding: 6px 10px;
+                background: #fef2f2;
+                border-radius: var(--radius-sm);
+                margin-bottom: 10px;
+                font-weight: 500;
+            }
+            .td-actor-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 3px 9px 3px 3px;
+                background: var(--bg);
+                border: 1px solid var(--border);
+                border-radius: 14px;
+                font-size: 11.5px;
+            }
+            .td-actor-chip img,
+            .td-actor-chip .initial {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                object-fit: cover;
+                color: #fff;
+                font-size: 9px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .td-cmts {
+                margin-bottom: 10px;
+            }
+            .td-cmts .cmt-l {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text2);
+                margin-bottom: 5px;
+            }
+            .td-cmt {
+                padding: 6px 9px;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+                margin-bottom: 5px;
+                font-size: 12.5px;
+                position: relative;
+            }
+            .td-cmt .cmt-m {
+                font-size: 10.5px;
+                color: var(--primary);
+                font-weight: 700;
+                display: block;
+                margin-bottom: 1px;
+            }
+            .ac-btn {
+                font-size: 10px;
+                border: none;
+                background: none;
+                cursor: pointer;
+                color: var(--primary);
+                padding: 1px 3px;
+            }
+            .ac-del {
+                color: var(--blocked);
+                opacity: 0.55;
+                float: right;
+            }
+            .ac-del:hover {
+                opacity: 1;
+            }
+            .cmt-sel {
+                font-size: 10.5px;
+                padding: 3px 6px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                background: var(--surface);
+                font-family: inherit;
+                margin-right: 4px;
+            }
+            .cmta {
+                display: flex;
+                gap: 6px;
+                margin-top: 4px;
+            }
+            .cmta textarea {
+                flex: 1;
+                font-size: 12px;
+                padding: 6px 8px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                resize: none;
+                min-height: 30px;
+                font-family: inherit;
+            }
+            .td-acts {
+                display: flex;
+                gap: 6px;
+                margin-top: 6px;
+            }
+
+            /* ── Kanban ── */
+            #kv {
+                display: none;
+                flex: 1;
+                overflow-x: auto;
+                padding: 16px 20px;
+                gap: 14px;
+            }
+            #kv.op {
+                display: flex;
+            }
+            .kc {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                flex: 1;
+                min-width: 250px;
+                display: flex;
+                flex-direction: column;
+                max-height: calc(100vh - 130px);
+                box-shadow: var(--shadow);
+            }
+            .kch {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 12px 14px;
+                border-bottom: 1px solid var(--border);
+                font-size: 12.5px;
+                font-weight: 700;
+                flex-shrink: 0;
+            }
+            .kch .cnt {
+                font-size: 11px;
+                color: var(--text2);
+                font-weight: 600;
+                background: var(--bg);
+                border-radius: 20px;
+                padding: 1px 7px;
+                margin-left: auto;
+            }
+            .kcl {
+                flex: 1;
+                overflow-y: auto;
+                padding: 8px;
+                min-height: 80px;
+            }
+            .kcl.d-over {
+                background: var(--primary-tint);
+                border-radius: 6px;
+            }
+            .kb {
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 10px 11px;
+                margin-bottom: 8px;
+                background: var(--surface);
+                cursor: grab;
+                transition: 0.15s;
+                user-select: none;
+                box-shadow: var(--shadow);
+            }
+            .kb:hover {
+                border-color: var(--primary);
+            }
+            .kb.drag {
+                opacity: 0.4;
+            }
+            .kb .kbid {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--text3);
+                font-family: "SF Mono", monospace;
+            }
+            .kb .kbdesc {
+                display: block;
+                font-size: 12px;
+                font-weight: 600;
+                margin-top: 3px;
+                line-height: 1.35;
+                white-space: pre-wrap;
+            }
+            .kb .kbm {
+                display: flex;
+                gap: 4px;
+                margin-top: 7px;
+                flex-wrap: wrap;
+            }
+            .kb .kbdue {
+                font-size: 10px;
+                color: var(--text2);
+                margin-top: 5px;
+                display: flex;
+                align-items: center;
+                gap: 3px;
+            }
+            .kadd {
+                margin: 8px;
+                align-self: flex-start;
+            }
+
+            /* ── Modals ── */
+            .mo {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 16, 26, 0.35);
+                z-index: 1000;
+                align-items: center;
+                justify-content: center;
+            }
+            .mo.op {
+                display: flex;
+            }
+            .m {
+                background: var(--surface);
+                border-radius: 14px;
+                padding: 22px;
+                width: 520px;
+                max-width: 90vw;
+                max-height: 85vh;
+                overflow-y: auto;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+            }
+            .m h2 {
+                font-size: 16px;
+                margin-bottom: 16px;
+                font-weight: 700;
+            }
+            .fg {
+                margin-bottom: 12px;
+            }
+            .fg label {
+                display: block;
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--text2);
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+            .fg input,
+            .fg textarea,
+            .fg select {
+                width: 100%;
+                padding: 8px 10px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                font-size: 12.5px;
+                font-family: inherit;
+            }
+            .fg input:focus,
+            .fg textarea:focus,
+            .fg select:focus {
+                outline: none;
+                border-color: var(--primary);
+            }
+            .fg textarea {
+                resize: vertical;
+                min-height: 44px;
+            }
+            .ma {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+                margin-top: 16px;
+            }
+            .ck-g {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-bottom: 5px;
+                max-height: 110px;
+                overflow-y: auto;
+                padding: 8px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                min-height: 36px;
+            }
+            .ck-g label {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                font-size: 11.5px;
+                cursor: pointer;
+                padding: 4px 9px;
+                background: var(--bg);
+                border: 1px solid var(--border2);
+                border-radius: 14px;
+                white-space: nowrap;
+                transition: 0.15s;
+                user-select: none;
+            }
+            .ck-g label.ckd {
+                background: var(--primary);
+                color: #fff;
+                border-color: var(--primary);
+            }
+            .ck-g label input {
+                display: none;
+            }
+            .il-add {
+                display: flex;
+                gap: 5px;
+                margin-top: 5px;
+                align-items: center;
+            }
+            .il-add input {
+                font-size: 11.5px;
+                padding: 5px 7px;
+                border: 1px solid var(--border2);
+                border-radius: var(--radius-sm);
+                flex: 1;
+            }
+            .il-add input[type="url"] {
+                flex: 2;
+            }
+            .at {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12.5px;
+            }
+            .at th {
+                text-align: left;
+                font-weight: 700;
+                color: var(--text2);
+                padding: 7px 9px;
+                border-bottom: 2px solid var(--border);
+            }
+            .at td {
+                padding: 7px 9px;
+                border-bottom: 1px solid var(--border);
+                vertical-align: middle;
+            }
+            .at td .btn-sm {
+                font-size: 10.5px;
+                padding: 3px 7px;
+            }
+            .at img {
+                width: 22px;
+                height: 22px;
+                border-radius: 50%;
+                object-fit: cover;
+                vertical-align: middle;
+            }
+
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                padding: 9px 18px;
+                border-radius: var(--radius-sm);
+                color: #fff;
+                font-size: 12.5px;
+                font-weight: 600;
+                z-index: 2000;
+                opacity: 0;
+                transform: translateY(8px);
+                transition: 0.3s;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+            }
+            .toast.sh {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .toast.s {
+                background: var(--done);
+            }
+            .toast.e {
+                background: var(--blocked);
+            }
+
+            @media (max-width: 900px) {
+                .col-head,
+                .task-row {
+                    grid-template-columns: 22px 1fr 90px 30px;
+                }
+                .t-est,
+                .type-wrap {
+                    display: none;
+                }
+            }
+            @media (max-width: 768px) {
+                .h-row1 {
+                    padding: 10px 14px;
+                }
+                .h-row2 {
+                    padding: 8px 14px;
+                }
+                #lv {
+                    padding: 10px 12px;
+                }
+                .search input {
+                    width: 140px;
+                }
+                #kv {
+                    padding: 8px;
+                    gap: 8px;
+                    flex-direction: column;
+                }
+                .kc {
+                    max-height: none;
+                    min-height: 200px;
+                }
+                .m {
+                    width: auto;
+                    max-width: 95vw;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="h-row1">
+                <div class="logo">T</div>
+                <h1>TODO</h1>
+                <div class="avatars" id="hdr-avatars"></div>
+                <button
+                    class="av-add"
+                    title="Ajouter un membre"
+                    onclick="om('add-actor')"
+                >
+                    +
+                </button>
+            </div>
+            <div class="h-row2">
+                <div class="tabs" id="vt">
+                    <button class="act" data-v="list">☰ Liste</button>
+                    <button data-v="kanban">▦ Kanban</button>
+                </div>
+                <div class="spacer"></div>
+                <div class="search">
+                    <svg
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="M21 21l-4.3-4.3" />
+                    </svg>
+                    <input
+                        id="search"
+                        placeholder="Rechercher une tâche..."
+                        oninput="onSearch()"
+                    />
+                </div>
+                <div class="filter-wrap">
+                    <button class="btn" onclick="toggleFilterPop(event)">
+                        ⚙ Filtrer
+                    </button>
+                    <div class="filter-pop" id="filter-pop">
+                        <div class="fp-title">Priorité</div>
+                        <label
+                            ><input
+                                type="checkbox"
+                                value="high"
+                                onchange="onFilterChange()"
+                            />
+                            Haute</label
+                        >
+                        <label
+                            ><input
+                                type="checkbox"
+                                value="medium"
+                                onchange="onFilterChange()"
+                            />
+                            Moyenne</label
+                        >
+                        <label
+                            ><input
+                                type="checkbox"
+                                value="low"
+                                onchange="onFilterChange()"
+                            />
+                            Basse</label
+                        >
+                    </div>
+                </div>
+                <button class="btn btn-pri" onclick="om('add-task')">
+                    + Nouvelle tâche
+                </button>
+            </div>
+        </header>
+
+        <div id="lv">
+            <div class="empty"><p>Chargement...</p></div>
+        </div>
+
+        <div id="kv">
+            <div class="kc">
+                <div class="kch">
+                    <span class="sd t"></span>À faire<span
+                        class="cnt"
+                        id="c-Todo"
+                        >0</span
+                    >
+                </div>
+                <button
+                    class="btn btn-sm kadd"
+                    onclick="om('add-task', 'todo')"
+                >
+                    + Nouvelle
+                </button>
+                <div class="kcl" data-s="Todo" id="col-Todo"></div>
+            </div>
+            <div class="kc">
+                <div class="kch">
+                    <span class="sd e"></span>En cours<span
+                        class="cnt"
+                        id="c-InProgress"
+                        >0</span
+                    >
+                </div>
+                <button
+                    class="btn btn-sm kadd"
+                    onclick="om('add-task', 'en-cours')"
+                >
+                    + Nouvelle
+                </button>
+                <div class="kcl" data-s="InProgress" id="col-InProgress"></div>
+            </div>
+            <div class="kc">
+                <div class="kch">
+                    <span class="sd d"></span>Terminé<span
+                        class="cnt"
+                        id="c-Done"
+                        >0</span
+                    >
+                </div>
+                <button
+                    class="btn btn-sm kadd"
+                    onclick="om('add-task', 'done')"
+                >
+                    + Nouvelle
+                </button>
+                <div class="kcl" data-s="Done" id="col-Done"></div>
+            </div>
+            <div class="kc">
+                <div class="kch">
+                    <span class="sd b"></span>Bloqué<span
+                        class="cnt"
+                        id="c-Blocked"
+                        >0</span
+                    >
+                </div>
+                <button
+                    class="btn btn-sm kadd"
+                    onclick="om('add-task', 'bloqued')"
+                >
+                    + Nouvelle
+                </button>
+                <div class="kcl" data-s="Blocked" id="col-Blocked"></div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-view-task">
+            <div class="m" style="width:560px">
+                <h2>Tâche</h2>
+                <div id="vt-body"></div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('view-task')">Fermer</button>
+                    <button class="btn btn-pri btn-sm" id="vt-edit">Modifier</button>
+                    <button class="btn btn-sm btn-danger" id="vt-del">Supprimer</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-add-task">
+            <div class="m">
+                <h2>Nouvelle tâche</h2>
+                <input type="hidden" id="tdst" />
+                <div class="fg">
+                    <label>Statut</label
+                    ><select id="tdst-vis">
+                        <option value="todo">À faire</option>
+                        <option value="en-cours">En cours</option>
+                        <option value="done">Terminé</option>
+                        <option value="bloqued">Bloqué</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Description</label
+                    ><textarea id="td" rows="3"></textarea>
+                </div>
+                <div class="fg">
+                    <label>Échéance</label
+                    ><input type="datetime-local" id="tdue" />
+                </div>
+                <div class="fg">
+                    <label>Priorité</label
+                    ><select id="tprio">
+                        <option value="">Aucune</option>
+                        <option value="low">Basse</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="high">Haute</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Personnes</label>
+                    <div class="ck-g" id="ta-ck"></div>
+                    <div class="il-add">
+                        <input
+                            id="ta-np"
+                            placeholder="Nouveau pseudo"
+                            onkeydown="ae('ta', event)"
+                        /><input
+                            type="url"
+                            id="ta-npic"
+                            placeholder="URL photo"
+                        /><button class="btn btn-sm" onclick="addNA('ta')">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="fg">
+                    <label>Type / Tags</label>
+                    <div class="ck-g" id="tt-ck"></div>
+                    <div class="il-add">
+                        <input
+                            id="tt-n"
+                            placeholder="Nouveau tag"
+                            onkeydown="te('tt', event)"
+                        /><button class="btn btn-sm" onclick="addNT('tt')">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('add-task')">Annuler</button
+                    ><button class="btn btn-pri" onclick="sAT()">
+                        Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-edit">
+            <div class="m">
+                <h2>Modifier la tâche</h2>
+                <div class="fg">
+                    <label>Description</label
+                    ><textarea id="ed" rows="3"></textarea>
+                </div>
+                <div class="fg">
+                    <label>Échéance</label
+                    ><input type="datetime-local" id="edu" />
+                </div>
+                <div class="fg">
+                    <label>Priorité</label
+                    ><select id="eprio">
+                        <option value="">Aucune</option>
+                        <option value="low">Basse</option>
+                        <option value="medium">Moyenne</option>
+                        <option value="high">Haute</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Raison du blocage</label
+                    ><textarea
+                        id="ebrt"
+                        rows="2"
+                        placeholder="Raison si bloqué..."
+                    ></textarea>
+                </div>
+                <div class="fg">
+                    <label>Personnes</label>
+                    <div class="ck-g" id="ea-ck"></div>
+                    <div class="il-add">
+                        <input
+                            id="ea-np"
+                            placeholder="Nouveau pseudo"
+                            onkeydown="ae('ea', event)"
+                        /><input
+                            type="url"
+                            id="ea-npic"
+                            placeholder="URL photo"
+                        /><button class="btn btn-sm" onclick="addNA('ea')">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="fg">
+                    <label>Type / Tags</label>
+                    <div class="ck-g" id="et-ck"></div>
+                    <div class="il-add">
+                        <input
+                            id="et-n"
+                            placeholder="Nouveau tag"
+                            onkeydown="te('et', event)"
+                        /><button class="btn btn-sm" onclick="addNT('et')">
+                            +
+                        </button>
+                    </div>
+                </div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('edit')">Annuler</button
+                    ><button class="btn btn-pri" onclick="sE()">
+                        Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-add-actor">
+            <div class="m" style="width: 400px">
+                <h2>Nouveau membre</h2>
+                <div class="fg">
+                    <label>Pseudo</label
+                    ><input id="ap" placeholder="ex. Alice" />
+                </div>
+                <div class="fg">
+                    <label>Photo</label>
+                    <div style="display:flex;gap:4px">
+                        <input id="apic" placeholder="URL ou chemin local..." style="flex:1" />
+                        <input type="file" accept="image/*" id="apic-file" style="display:none" />
+                        <button class="btn btn-sm" type="button" onclick="uploadPic('apic')">Parcourir</button>
+                    </div>
+                </div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('add-actor')">
+                        Annuler</button
+                    ><button class="btn btn-pri" onclick="sAA()">
+                        Ajouter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-edit-actor">
+            <div class="m" style="width: 400px">
+                <h2>Modifier le membre</h2>
+                <div class="fg"><label>Pseudo</label><input id="eap" /></div>
+                <div class="fg">
+                    <label>Type</label>
+                    <select id="eat">
+                        <option value="Human">Humain</option>
+                        <option value="AgentIa">Agent IA</option>
+                    </select>
+                </div>
+                <div class="fg">
+                    <label>Photo</label>
+                    <div style="display:flex;gap:4px">
+                        <input id="eapic" placeholder="URL ou chemin local..." style="flex:1" />
+                        <input type="file" accept="image/*" id="eapic-file" style="display:none" />
+                        <button class="btn btn-sm" type="button" onclick="uploadPic('eapic')">Parcourir</button>
+                    </div>
+                </div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('edit-actor')">
+                        Annuler</button
+                    ><button class="btn btn-pri" onclick="sEA()">
+                        Enregistrer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mo" id="m-actors">
+            <div class="m" style="width: 640px">
+                <h2>Membres</h2>
+                <div style="margin-bottom: 12px">
+                    <button
+                        class="btn btn-pri btn-sm"
+                        onclick="
+                            cm('actors');
+                            setTimeout(() => om('add-actor'), 200);
+                        "
+                    >
+                        + Nouveau
+                    </button>
+                </div>
+                <div id="ac-tbl"></div>
+                <div class="ma">
+                    <button class="btn" onclick="cm('actors')">Fermer</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="toast" class="toast"></div>
+
+        <script>
+            let D = null;
+            let searchQ = "";
+            let filterPrio = [];
+            let collapsedSections = new Set();
+
+            const AV_PAL = [
+                "#6366f1",
+                "#f59e0b",
+                "#10b981",
+                "#ec4899",
+                "#3b82f6",
+                "#ef4444",
+                "#8b5cf6",
+                "#14b8a6",
+                "#eab308",
+                "#0ea5e9",
+            ];
+            const TAG_PAL = [
+                ["#eef2ff", "#4f46e5"],
+                ["#fff7ed", "#c2410c"],
+                ["#ecfdf5", "#059669"],
+                ["#fdf2f8", "#db2777"],
+                ["#eff6ff", "#2563eb"],
+                ["#fefce8", "#a16207"],
+            ];
+            function hashN(s) {
+                let h = 0;
+                for (let i = 0; i < s.length; i++)
+                    h = (h * 31 + s.charCodeAt(i)) >>> 0;
+                return h;
+            }
+            function avColor(s) {
+                return AV_PAL[hashN(s) % AV_PAL.length];
+            }
+            function tagColor(s) {
+                return TAG_PAL[hashN(s) % TAG_PAL.length];
+            }
+
+            async function api(u, b) {
+                const o = { headers: { "Content-Type": "application/json" } };
+                if (b) ((o.method = "POST"), (o.body = JSON.stringify(b)));
+                const r = await fetch(u, o);
+                return r.json();
+            }
+            function tt(m, t) {
+                const e = document.getElementById("toast");
+                e.textContent = m;
+                e.className = "toast " + t + " sh";
+                setTimeout(() => e.classList.remove("sh"), 2500);
+            }
+            function esc(s) {
+                const d = document.createElement("div");
+                d.textContent = s;
+                return d.innerHTML;
+            }
+            function imgSrc(s) {
+                if (!s) return "";
+                if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("data:")) return s;
+                return "/api/pic?path=" + encodeURIComponent(s);
+            }
+            function fd(s) {
+                return s ? s.replace("T", " ").slice(0, 16) : "";
+            }
+            function toDT(s) {
+                if (!s) return "";
+                const m = s.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+                return m ? m[1] + "T" + m[2] + ":00" : "";
+            }
+            function sc(s) {
+                if (s === "InProgress") return "e";
+                if (s === "Done") return "d";
+                if (s === "Blocked") return "b";
+                return "t";
+            }
+            function sl(s) {
+                if (s === "InProgress") return "En cours";
+                if (s === "Done") return "Terminé";
+                if (s === "Blocked") return "Bloqué";
+                return "À faire";
+            }
+            function fmtShort(s) {
+                if (!s) return null;
+                const m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+                if (!m) return s;
+                const months = [
+                    "Jan",
+                    "Fév",
+                    "Mar",
+                    "Avr",
+                    "Mai",
+                    "Juin",
+                    "Juil",
+                    "Août",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Déc",
+                ];
+                return (
+                    months[parseInt(m[2], 10) - 1] +
+                    " " +
+                    parseInt(m[3], 10) +
+                    ", " +
+                    m[1]
+                );
+            }
+
+            // ── Avatar helpers ──
+            function avatarHTML(a, size) {
+                size = size || 22;
+                const src = imgSrc(a.pic);
+                if (src)
+                    return (
+                        '<img class="av" src="' +
+                        esc(src) +
+                        '" title="' +
+                        esc(a.pseudo) +
+                        '" style="width:' +
+                        size +
+                        "px;height:" +
+                        size +
+                        'px">'
+                    );
+                return (
+                    '<span class="av" title="' +
+                    esc(a.pseudo) +
+                    '" style="width:' +
+                    size +
+                    "px;height:" +
+                    size +
+                    "px;background:" +
+                    avColor(a.pseudo) +
+                    '">' +
+                    esc((a.pseudo[0] || "?").toUpperCase()) +
+                    "</span>"
+                );
+            }
+
+            function renderHeaderAvatars() {
+                const c = document.getElementById("hdr-avatars");
+                if (!D) return;
+                const list = (D.actors || []).slice(0, 4);
+                let h = list.map((a) => avatarHTML(a, 26)).join("");
+                const rest = (D.actors || []).length - list.length;
+                if (rest > 0) h += '<span class="av-more">+' + rest + "</span>";
+                c.innerHTML = h;
+            }
+
+            // ── Pickers ──
+            function uniqTags() {
+                const s = new Set();
+                (D.tasks || []).forEach((t) =>
+                    (t.tags || []).forEach((tag) => s.add(tag)),
+                );
+                return [...s].sort();
+            }
+
+            function rAPickers(prefix, chk) {
+                const c = document.getElementById(prefix + "-ck");
+                if (!c) return;
+                chk = chk || [];
+                c.innerHTML = (D.actors || [])
+                    .map((a) => {
+                        const ckd = chk.includes(a.id);
+                        return (
+                            '<label class="' +
+                            (ckd ? "ckd" : "") +
+                            '" data-v="' +
+                            a.id +
+                            '" onclick="tC(this)"><input type="checkbox" value="' +
+                            a.id +
+                            '" ' +
+                            (ckd ? "checked" : "") +
+                            ">" +
+                            esc(a.pseudo) +
+                            "</label>"
+                        );
+                    })
+                    .join("");
+            }
+
+            function rTPickers(prefix, chk) {
+                const c = document.getElementById(prefix + "-ck");
+                if (!c) return;
+                chk = chk || [];
+                const existing = uniqTags();
+                const all = [...new Set([...existing, ...chk])];
+                c.innerHTML = all
+                    .map((t) => {
+                        const ckd = chk.includes(t);
+                        return (
+                            '<label class="' +
+                            (ckd ? "ckd" : "") +
+                            '" data-v="' +
+                            t +
+                            '" onclick="tC(this)"><input type="checkbox" value="' +
+                            t +
+                            '" ' +
+                            (ckd ? "checked" : "") +
+                            ">" +
+                            esc(t) +
+                            "</label>"
+                        );
+                    })
+                    .join("");
+            }
+
+            function tC(el) {
+                const cb = el.querySelector("input");
+                cb.checked = !cb.checked;
+                el.classList.toggle("ckd", cb.checked);
+            }
+
+            function getSel(prefix) {
+                const c = document.getElementById(prefix + "-ck");
+                if (!c) return [];
+                return Array.from(c.querySelectorAll("input:checked")).map(
+                    (i) => i.value,
+                );
+            }
+
+            async function addNA(prefix) {
+                const p = document.getElementById(prefix + "-np").value.trim();
+                const pi =
+                    document.getElementById(prefix + "-npic").value.trim() ||
+                    null;
+                if (!p) {
+                    tt("Pseudo requis", "e");
+                    return;
+                }
+                const r = await api("/api/add-actor", { pseudo: p, pic: pi });
+                if (r.ok) {
+                    document.getElementById(prefix + "-np").value = "";
+                    document.getElementById(prefix + "-npic").value = "";
+                    const old = getSel(prefix);
+                    D = await api("/api/todo");
+                    const na = (D.actors || []).find((a) => a.pseudo === p);
+                    const chk = na && na.id ? old.concat([na.id]) : old;
+                    rAPickers(prefix, chk);
+                    renderHeaderAvatars();
+                    tt("Membre ajouté", "s");
+                } else tt(r.error, "e");
+            }
+
+            async function addNT(prefix) {
+                const p = document.getElementById(prefix + "-n").value.trim();
+                if (!p) {
+                    tt("Tag requis", "e");
+                    return;
+                }
+                document.getElementById(prefix + "-n").value = "";
+                const tag = p.toLowerCase();
+                const old = getSel(prefix);
+                const chk = old.includes(tag) ? old : old.concat([tag]);
+                rTPickers(prefix, chk);
+            }
+
+            // ── Search / Filter ──
+            function onSearch() {
+                searchQ = document
+                    .getElementById("search")
+                    .value.trim()
+                    .toLowerCase();
+                rL();
+                rK();
+            }
+            function toggleFilterPop(e) {
+                e.stopPropagation();
+                document.getElementById("filter-pop").classList.toggle("open");
+            }
+            document.addEventListener("click", (e) => {
+                const w = document.querySelector(".filter-wrap");
+                if (w && !w.contains(e.target))
+                    document
+                        .getElementById("filter-pop")
+                        .classList.remove("open");
+            });
+            function onFilterChange() {
+                filterPrio = Array.from(
+                    document.querySelectorAll(".filter-pop input:checked"),
+                ).map((i) => i.value);
+                rL();
+                rK();
+            }
+            function filteredTasks() {
+                return (D.tasks || []).filter((t) => {
+                    if (searchQ) {
+                        const inDesc = (t.description || "")
+                            .toLowerCase()
+                            .includes(searchQ);
+                        const inTags = (t.tags || []).some((tag) =>
+                            tag.toLowerCase().includes(searchQ),
+                        );
+                        if (!inDesc && !inTags) return false;
+                    }
+                    if (
+                        filterPrio.length &&
+                        !filterPrio.includes((t.priority || "").toLowerCase())
+                    )
+                        return false;
+                    return true;
+                });
+            }
+
+            function toggleSection(st) {
+                if (collapsedSections.has(st)) collapsedSections.delete(st);
+                else collapsedSections.add(st);
+                rL();
+            }
+            function viewTask(id) {
+                const t = (D.tasks || []).find((x) => x.id === id);
+                if (!t) return;
+                const bs = document.getElementById("vt-body");
+                let h = '<div class="td-desc">' + esc(t.description) + "</div>";
+                h += '<div class="td-meta">';
+                if (t.created) h += "<span><strong>Créé :</strong> " + fd(t.created) + "</span>";
+                if (t.due) h += "<span><strong>Échéance :</strong> " + fd(t.due) + "</span>";
+                h += "</div>";
+                const sm = ((s) => { if (s === "Todo") return "todo"; if (s === "InProgress") return "en-cours"; if (s === "Done") return "done"; return "bloqued"; })(t.status);
+                h += '<div class="td-row td-status"><span class="td-label">Statut</span><select onchange="cS(\'' + t.id + '\',this.value)">' +
+                    '<option value="todo" ' + (sm === "todo" ? "selected" : "") + '>À faire</option>' +
+                    '<option value="en-cours" ' + (sm === "en-cours" ? "selected" : "") + '>En cours</option>' +
+                    '<option value="done" ' + (sm === "done" ? "selected" : "") + '>Terminé</option>' +
+                    '<option value="bloqued" ' + (sm === "bloqued" ? "selected" : "") + '>Bloqué</option></select></div>';
+                if (t.status === "Blocked" && t.blocked_reason)
+                    h += '<div class="td-br">&#128308; ' + esc(t.blocked_reason) + "</div>";
+                const prio = (t.priority || "").toLowerCase();
+                if (prio)
+                    h += '<div class="td-row"><span class="td-label">Priorité</span><span class="prio-pill" style="background:' +
+                        (prio === "high" ? "var(--prio-h-bg)" : prio === "medium" ? "var(--prio-m-bg)" : "var(--prio-l-bg)") +
+                        ";color:" +
+                        (prio === "high" ? "var(--prio-h-t)" : prio === "medium" ? "var(--prio-m-t)" : "var(--prio-l-t)") +
+                        '">' + esc(t.priority) + "</span></div>";
+                const tags = t.tags || [];
+                if (tags.length) {
+                    h += '<div class="td-row"><span class="td-label">Tags</span>';
+                    tags.forEach((tag) => {
+                        const [bg, fg] = tagColor(tag);
+                        h += '<span class="chip" style="background:' + bg + ";color:" + fg +
+                            '"><span class="dot" style="background:' + fg + '"></span>' + esc(tag) + "</span>";
+                    });
+                    h += "</div>";
+                }
+                const as = (D.actors || []).filter((a) => (t.actors || []).includes(a.id));
+                if (as.length) {
+                    h += '<div class="td-row"><span class="td-label">Personnes</span>';
+                    as.forEach((a) => {
+                        h += '<span class="td-actor-chip">' +
+                            (imgSrc(a.pic) ? '<img src="' + esc(imgSrc(a.pic)) + '">' : '<span class="initial" style="background:' + avColor(a.pseudo) + '">' + esc((a.pseudo[0] || "?").toUpperCase()) + "</span>") +
+                            esc(a.pseudo) + "</span>";
+                    });
+                    h += "</div>";
+                }
+                const cs = (D.comments || []).filter((c) => (t.comments || []).includes(c.id));
+                h += '<div class="td-cmts"><div class="cmt-l">Commentaires (' + cs.length + ")</div>";
+                cs.forEach((c) => {
+                    const ca = (D.actors || []).filter((a) => (c.actors || []).includes(a.id));
+                    h += '<div class="td-cmt"><button class="ac-btn ac-del" onclick="dT(\'' + c.id + "')\">&#10005;</button>" +
+                        (ca.length ? '<span class="cmt-m">' + ca.map((a) => esc(a.pseudo)).join(", ") + "</span>" : "") +
+                        esc(c.text) + "</div>";
+                });
+                const aos = (D.actors || []).map((a) => '<option value="' + a.id + '">' + esc(a.pseudo) + "</option>").join("");
+                h += '<div class="cmta"><select id="vma-' + t.id + '" class="cmt-sel"><option value="">Anonyme</option>' +
+                    aos + '</select><textarea id="vmt-' + t.id +
+                    '" placeholder="Ajouter un commentaire..." rows="1" onkeydown="ce(\'' + t.id + "',event)\"></textarea></div>";
+                h += "</div>";
+                bs.innerHTML = h;
+                document.getElementById("vt-edit").onclick = function () { cm("view-task"); oE(id); };
+                document.getElementById("vt-del").onclick = function () { if (confirm("Supprimer #" + id + " ?")) { cm("view-task"); dT(id); } };
+                om("view-task");
+            }
+
+            // ── Load ──
+            async function ld() {
+                const r = await api("/api/todo");
+                if (r.error) {
+                    tt(r.error, "e");
+                    return;
+                }
+                D = r;
+                rL();
+                rK();
+                renderHeaderAvatars();
+            }
+
+            // ── List View ──
+            function rL() {
+                const e = document.getElementById("lv");
+                if (!D) {
+                    e.innerHTML =
+                        '<div class="empty"><p>Chargement...</p></div>';
+                    return;
+                }
+                const g = { Todo: [], InProgress: [], Done: [], Blocked: [] };
+                filteredTasks().forEach((t) => {
+                    const k = g[t.status] !== undefined ? t.status : "Todo";
+                    g[k].push(t);
+                });
+                const order = ["Todo", "InProgress", "Done", "Blocked"];
+                let h = "";
+                for (const st of order) {
+                    const items = g[st];
+                    if (!items.length) continue;
+                    const collapsed = collapsedSections.has(st);
+                    h +=
+                        '<div class="sg"><div class="sh ' +
+                        (collapsed ? "collapsed" : "") +
+                        '">';
+                    h +=
+                        '<span class="chev" onclick="toggleSection(\'' +
+                        st +
+                        "')\">▾</span>";
+                    h +=
+                        '<span class="sd ' +
+                        sc(st) +
+                        '"></span>' +
+                        sl(st) +
+                        '<span class="cnt">' +
+                        items.length +
+                        "</span>";
+                    h +=
+                        '<button class="add-in" title="Ajouter une tâche" onclick="om(\'add-task\',\'' +
+                        {
+                            Todo: "todo",
+                            InProgress: "en-cours",
+                            Done: "done",
+                            Blocked: "bloqued",
+                        }[st] +
+                        "')\">+</button>";
+                    h += "</div>";
+                    if (!collapsed) {
+                        h +=
+                            '<div class="col-head"><span></span><span>Tâche</span><span>Échéance</span><span>Type</span><span>Personnes</span><span>Priorité</span><span></span></div>';
+                        items.forEach((t) => {
+                            const prio = (t.priority || "").toLowerCase();
+                            const prioHTML = prio
+                                ? '<span class="prio-pill" style="background:' +
+                                  (prio === "high"
+                                      ? "var(--prio-h-bg)"
+                                      : prio === "medium"
+                                        ? "var(--prio-m-bg)"
+                                        : "var(--prio-l-bg)") +
+                                  ";color:" +
+                                  (prio === "high"
+                                      ? "var(--prio-h-t)"
+                                      : prio === "medium"
+                                        ? "var(--prio-m-t)"
+                                        : "var(--prio-l-t)") +
+                                  '">' +
+                                  esc(t.priority) +
+                                  "</span>"
+                                : '<span class="prio-none">—</span>';
+                            const tags = t.tags || [];
+                            let typeHTML = '<div class="type-wrap">';
+                            tags.slice(0, 2).forEach((tag) => {
+                                const [bg, fg] = tagColor(tag);
+                                typeHTML +=
+                                    '<span class="chip" style="background:' +
+                                    bg +
+                                    ";color:" +
+                                    fg +
+                                    '"><span class="dot" style="background:' +
+                                    fg +
+                                    '"></span>' +
+                                    esc(tag) +
+                                    "</span>";
+                            });
+                            if (tags.length > 2)
+                                typeHTML +=
+                                    '<span class="chip" style="background:var(--bg);color:var(--text2)">+' +
+                                    (tags.length - 2) +
+                                    "</span>";
+                            typeHTML += "</div>";
+                            if (!tags.length)
+                                typeHTML =
+                                    '<span class="prio-none">—</span>';
+                            const as = (D.actors || []).filter((a) =>
+                                (t.actors || []).includes(a.id),
+                            );
+                            let peopleHTML = '<div class="people">';
+                            as.slice(0, 3).forEach(
+                                (a) => (peopleHTML += avatarHTML(a, 22)),
+                            );
+                            if (as.length > 3)
+                                peopleHTML +=
+                                    '<span class="av-more">+' +
+                                    (as.length - 3) +
+                                    "</span>";
+                            peopleHTML += "</div>";
+                            if (!as.length)
+                                peopleHTML =
+                                    '<span class="prio-none">—</span>';
+                            const estHTML = t.due
+                                ? "<span>" + fmtShort(t.due) + "</span>"
+                                : t.created
+                                  ? "<span>" +
+                                    fmtShort(t.created) +
+                                    "</span>"
+                                  : '<span class="prio-none">—</span>';
+
+                            h +=
+                                '<div class="task-item" id="ti-' +
+                                t.id +
+                                '">';
+                            h += '<div class="task-row">';
+                            h +=
+                                '<input type="checkbox" onclick="event.stopPropagation()">';
+                            h +=
+                                '<div class="t-name' +
+                                (t.description && t.description.includes('\n') ? ' t-name-multi' : '') +
+                                '" onclick="viewTask(\'' +
+                                t.id +
+                                '\')"><span class="idtag">#' +
+                                t.id +
+                                "</span>" +
+                                esc(t.description) +
+                                "</div>";
+                            h += '<div class="t-est">' + estHTML + "</div>";
+                            h += typeHTML;
+                            h += peopleHTML;
+                            h += prioHTML;
+                            h +=
+                                '<button class="expander" onclick="viewTask(\'' +
+                                t.id +
+                                "')\">›</button>";
+                            h += "</div>";
+                            h += "</div>"; // task-item
+                        });
+                    }
+                    h += "</div>"; // sg
+                }
+                e.innerHTML =
+                    h || '<div class="empty"><p>Aucune tâche</p></div>';
+            }
+
+            // ── Kanban ──
+            function rK() {
+                if (!D) return;
+                const cols = {
+                    Todo: [],
+                    InProgress: [],
+                    Done: [],
+                    Blocked: [],
+                };
+                filteredTasks().forEach((t) => {
+                    const k = cols[t.status] !== undefined ? t.status : "Todo";
+                    cols[k].push(t);
+                });
+                for (const [st, items] of Object.entries(cols)) {
+                    const col = document.getElementById("col-" + st);
+                    if (!col) continue;
+                    document.getElementById("c-" + st).textContent =
+                        items.length;
+                    let h = "";
+                    items.forEach((t) => {
+                        const as = (D.actors || []).filter((a) =>
+                            (t.actors || []).includes(a.id),
+                        );
+                        const prio = (t.priority || "").toLowerCase();
+                        let prioChip = "";
+                        if (prio)
+                            prioChip =
+                                '<span class="chip" style="background:' +
+                                (prio === "high"
+                                    ? "var(--prio-h-bg)"
+                                    : prio === "medium"
+                                      ? "var(--prio-m-bg)"
+                                      : "var(--prio-l-bg)") +
+                                ";color:" +
+                                (prio === "high"
+                                    ? "var(--prio-h-t)"
+                                    : prio === "medium"
+                                      ? "var(--prio-m-t)"
+                                      : "var(--prio-l-t)") +
+                                '">' +
+                                esc(t.priority) +
+                                "</span>";
+                        h +=
+                            '<div class="kb" draggable="true" data-id="' +
+                            t.id +
+                            '" onclick="kbc(\'' +
+                            t.id +
+                            '\')"><span class="kbid">#' +
+                            t.id +
+                            "</span>";
+                        h +=
+                            '<span class="kbdesc">' +
+                            esc(t.description) +
+                            "</span>";
+                        h += '<div class="kbm">' + prioChip;
+                        if (t.tags && t.tags.length)
+                            t.tags.forEach((tag) => {
+                                const [bg, fg] = tagColor(tag);
+                                h +=
+                                    '<span class="chip" style="background:' +
+                                    bg +
+                                    ";color:" +
+                                    fg +
+                                    '">' +
+                                    esc(tag) +
+                                    "</span>";
+                            });
+                        h += "</div>";
+                        if (t.due)
+                            h +=
+                                '<div class="kbdue">&#9200; ' +
+                                fmtShort(t.due) +
+                                "</div>";
+                        if (t.status === "Blocked" && t.blocked_reason)
+                            h +=
+                                '<div class="kbdue">&#128308; ' +
+                                esc(t.blocked_reason) +
+                                "</div>";
+                        if (as.length) {
+                            h += '<div class="kbm" style="margin-top:6px">';
+                            as.forEach((a) => (h += avatarHTML(a, 20)));
+                            h += "</div>";
+                        }
+                        h += "</div>";
+                    });
+                    col.innerHTML = h;
+                }
+                document.querySelectorAll(".kb").forEach((el) => {
+                    el.addEventListener("dragstart", onDS);
+                    el.addEventListener("dragend", onDE);
+                });
+            }
+
+            let dragId = null;
+            let dragF = false;
+            function onDS(e) {
+                dragF = true;
+                dragId = e.target.dataset.id;
+                e.target.classList.add("drag");
+                e.dataTransfer.effectAllowed = "move";
+            }
+            function onDE(e) {
+                e.target.classList.remove("drag");
+                setTimeout(() => {
+                    dragId = null;
+                    dragF = false;
+                }, 100);
+            }
+            function kbc(id) {
+                if (!dragF) oE(id);
+            }
+            document.querySelectorAll(".kcl").forEach((el) => {
+                el.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                });
+                el.addEventListener("dragenter", (e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.add("d-over");
+                });
+                el.addEventListener("dragleave", (e) => {
+                    e.currentTarget.classList.remove("d-over");
+                });
+                el.addEventListener("drop", async (e) => {
+                    e.preventDefault();
+                    e.currentTarget.classList.remove("d-over");
+                    const st = e.currentTarget.dataset.s;
+                    if (!dragId || !st || !D) return;
+                    const t = (D.tasks || []).find((x) => x.id === dragId);
+                    if (!t || t.status === st) return;
+                    const m = {
+                        Todo: "todo",
+                        InProgress: "en-cours",
+                        Done: "done",
+                        Blocked: "bloqued",
+                    };
+                    const r = await api("/api/status", {
+                        id: dragId,
+                        set: m[st] || st,
+                    });
+                    if (r.ok) {
+                        tt("Déplacé", "s");
+                        await ld();
+                    } else tt(r.error, "e");
+                });
+            });
+
+            // ── Actions ──
+            async function cS(id, s) {
+                if (!s) return;
+                let b = { id, set: s };
+                if (s === "bloqued") {
+                    const re = prompt("Raison du blocage :");
+                    if (re) b.reason = re;
+                }
+                const r = await api("/api/status", b);
+                if (r.ok) {
+                    tt("Statut mis à jour", "s");
+                    await ld();
+                } else tt(r.error, "e");
+            }
+            async function dT(id) {
+                if (!confirm("Supprimer #" + id + " ?")) return;
+                const r = await api("/api/delete", { id });
+                if (r.ok) {
+                    tt("Supprimé", "s");
+                    await ld();
+                } else tt(r.error, "e");
+            }
+            async function addCmt(id) {
+                const ta = document.getElementById("vmt-" + id);
+                if (!ta) return;
+                const text = ta.value.trim();
+                if (!text) return;
+                const as = document.getElementById("vma-" + id);
+                const aid = as ? as.value : "";
+                const b = { text, task_id: id };
+                if (aid) b.actors = aid;
+                const r = await api("/api/add-comment", b);
+                if (r.ok) {
+                    ta.value = "";
+                    tt("Commentaire ajouté", "s");
+                    await ld();
+                } else tt(r.error, "e");
+            }
+
+            function ce(id, e) {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    addCmt(id);
+                }
+            }
+            function te(p, e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    addNT(p);
+                }
+            }
+            function ae(p, e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    addNA(p);
+                }
+            }
+
+            // ── View Toggle ──
+            document
+                .getElementById("vt")
+                .querySelectorAll("button")
+                .forEach((b) => {
+                    b.addEventListener("click", () => {
+                        document
+                            .getElementById("vt")
+                            .querySelectorAll("button")
+                            .forEach((x) => x.classList.remove("act"));
+                        b.classList.add("act");
+                        const v = b.dataset.v;
+                        document.getElementById("lv").style.display =
+                            v === "list" ? "block" : "none";
+                        document
+                            .getElementById("kv")
+                            .classList.toggle("op", v === "kanban");
+                    });
+                });
+
+            // ── Modal dismiss on backdrop click ──
+            document.querySelectorAll(".mo").forEach((el) => {
+                el.addEventListener("click", function (e) {
+                    if (e.target === this) {
+                        cm(this.id.replace("m-", ""));
+                    }
+                });
+            });
+
+            // ── Modals ──
+            function om(n, s) {
+                document.getElementById("m-" + n).classList.add("op");
+                if (n === "add-task") {
+                    document.getElementById("tdst").value = "";
+                    document.getElementById("tdst-vis").value = s || "todo";
+                    rAPickers("ta");
+                    rTPickers("tt");
+                }
+                if (n === "actors") rActors();
+            }
+
+            function cm(n) {
+                document.getElementById("m-" + n).classList.remove("op");
+            }
+
+            async function uploadPic(inputId) {
+                const input = document.getElementById(inputId + "-file");
+                input.value = "";
+                input.onchange = async function () {
+                    const file = this.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = async function (e) {
+                        const r = await api("/api/upload", { data: e.target.result, name: file.name });
+                        if (r.ok) {
+                            document.getElementById(inputId).value = r.path;
+                        } else {
+                            tt(r.error, "e");
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                };
+                input.click();
+            }
+
+
+            // ── Add Task ──
+            async function sAT() {
+                const d = document.getElementById("td").value.trim();
+                if (!d) {
+                    tt("Description requise", "e");
+                    return;
+                }
+                const st = document.getElementById("tdst-vis").value;
+                const due = document.getElementById("tdue").value;
+                const prio = document.getElementById("tprio").value;
+                const b = { description: d, status: st };
+                if (due) b.due = due.replace("T", " ");
+                if (prio) b.priority = prio;
+                const acts = getSel("ta");
+                if (acts.length) b.actors = acts.join(",");
+                const tags = getSel("tt");
+                if (tags.length) b.tags = tags.join(",");
+                const ntag = document.getElementById("tt-n").value.trim();
+                if (ntag && !tags.includes(ntag))
+                    b.tags = b.tags ? b.tags + "," + ntag : ntag;
+                const r = await api("/api/add-task", b);
+                if (r.ok) {
+                    tt("Tâche ajoutée", "s");
+                    cm("add-task");
+                    document.getElementById("td").value = "";
+                    document.getElementById("tdue").value = "";
+                    document.getElementById("tprio").value = "";
+                    document.getElementById("tt-n").value = "";
+                    ["ta-np", "ta-npic", "tprio", "tdue"].forEach((x) => {
+                        const e = document.getElementById(x);
+                        if (e && e.tagName === "INPUT" && e.type !== "hidden")
+                            e.value = "";
+                    });
+                    await ld();
+                } else tt(r.error, "e");
+            }
+
+            // ── Edit Task ──
+            function oE(id) {
+                const t = (D.tasks || []).find((x) => x.id === id);
+                if (!t) return;
+                document.getElementById("ed").value = t.description || "";
+                document.getElementById("edu").value = toDT(t.due);
+                document.getElementById("eprio").value = (
+                    t.priority || ""
+                ).toLowerCase();
+                document.getElementById("ebrt").value = t.blocked_reason || "";
+                document.getElementById("m-edit").dataset.id = id;
+                om("edit");
+                rAPickers("ea", t.actors || []);
+                rTPickers("et", t.tags || []);
+            }
+            async function sE() {
+                const id = document.getElementById("m-edit").dataset.id;
+                const d = document.getElementById("ed").value.trim();
+                if (!d) {
+                    tt("Description requise", "e");
+                    return;
+                }
+                const due = document.getElementById("edu").value;
+                const prio = document.getElementById("eprio").value;
+                const b = { id, description: d };
+                if (due) b.due = due.replace("T", " ");
+                if (prio) b.priority = prio;
+                const acts = getSel("ea");
+                if (acts.length) b.actors = acts.join(",");
+                const tags = getSel("et");
+                if (tags.length) b.tags = tags.join(",");
+                const ntag = document.getElementById("et-n").value.trim();
+                if (ntag && !tags.includes(ntag))
+                    b.tags = b.tags ? b.tags + "," + ntag : ntag;
+                const br = document.getElementById("ebrt").value.trim();
+                if (br) b.blocked_reason = br;
+                const r = await api("/api/update", b);
+                if (r.ok) {
+                    tt("Mis à jour", "s");
+                    cm("edit");
+                    document.getElementById("et-n").value = "";
+                    await ld();
+                } else tt(r.error, "e");
+            }
+
+            // ── Add Actor modal ──
+            async function sAA() {
+                const p = document.getElementById("ap").value.trim();
+                if (!p) {
+                    tt("Pseudo requis", "e");
+                    return;
+                }
+                const pi = document.getElementById("apic").value.trim() || null;
+                const r = await api("/api/add-actor", { pseudo: p, pic: pi });
+                if (r.ok) {
+                    tt("Membre ajouté", "s");
+                    cm("add-actor");
+                    document.getElementById("ap").value = "";
+                    document.getElementById("apic").value = "";
+                    await ld();
+                } else tt(r.error, "e");
+            }
+
+            // ── Actors Modal ──
+            function rActors() {
+                const tbl = document.getElementById("ac-tbl");
+                if (!D) {
+                    tbl.innerHTML =
+                        '<p style="color:var(--text2)">Aucune donnée</p>';
+                    return;
+                }
+                if (!D.actors || !D.actors.length) {
+                    tbl.innerHTML =
+                        '<p style="color:var(--text2)">Aucun membre</p>';
+                    return;
+                }
+                let h =
+                    '<table class="at"><tr><th></th><th>Pseudo</th><th>ID</th><th>Type</th><th></th></tr>';
+                D.actors.forEach((a) => {
+                    h +=
+                        "<tr><td>" +
+                        (imgSrc(a.pic)
+                            ? '<img src="' + esc(imgSrc(a.pic)) + '">'
+                            : '<span style="display:inline-flex;width:22px;height:22px;border-radius:50%;background:' +
+                              avColor(a.pseudo) +
+                              ';color:#fff;align-items:center;justify-content:center;font-size:10px;font-weight:700">' +
+                              esc((a.pseudo[0] || "?").toUpperCase()) +
+                              "</span>") +
+                        "</td>";
+                    h +=
+                        "<td>" +
+                        esc(a.pseudo) +
+                        '</td><td style="color:var(--text2);font-family:monospace;font-size:11px">#' +
+                        a.id +
+                        "</td><td>" +
+                        esc(a.actor_type) +
+                        "</td>";
+                    h +=
+                        '<td><button class="btn btn-sm" onclick="oEA(\'' +
+                        a.id +
+                        '\')">Modifier</button> <button class="btn btn-sm btn-danger" onclick="dA(\'' +
+                        a.id +
+                        "')\">Supprimer</button></td></tr>";
+                });
+                h += "</table>";
+                tbl.innerHTML = h;
+            }
+            function oEA(id) {
+                const a = (D.actors || []).find((x) => x.id === id);
+                if (!a) return;
+                document.getElementById("eap").value = a.pseudo || "";
+                document.getElementById("eat").value = a.actor_type || "Human";
+                document.getElementById("eapic").value = a.pic || "";
+                document.getElementById("m-edit-actor").dataset.id = id;
+                cm("actors");
+                setTimeout(() => om("edit-actor"), 200);
+            }
+            async function sEA() {
+                const id = document.getElementById("m-edit-actor").dataset.id;
+                const p = document.getElementById("eap").value.trim();
+                if (!p) {
+                    tt("Pseudo requis", "e");
+                    return;
+                }
+                const pi =
+                    document.getElementById("eapic").value.trim() || null;
+                const at = document.getElementById("eat").value;
+                const r = await api("/api/update-actor", {
+                    id,
+                    pseudo: p,
+                    pic: pi,
+                    actor_type: at,
+                });
+                if (r.ok) {
+                    tt("Membre mis à jour", "s");
+                    cm("edit-actor");
+                    await ld();
+                    setTimeout(() => om("actors"), 200);
+                } else tt(r.error, "e");
+            }
+            async function dA(id) {
+                if (!confirm("Supprimer le membre #" + id + " ?")) return;
+                const r = await api("/api/delete-actor", { id });
+                if (r.ok) {
+                    tt("Membre supprimé", "s");
+                    await ld();
+                    rActors();
+                } else tt(r.error, "e");
+            }
+
+            // clicking header avatars opens the members modal
+            document
+                .getElementById("hdr-avatars")
+                .addEventListener("click", () => om("actors"));
+
+            ld();
+        </script>
+    </body>
+</html>

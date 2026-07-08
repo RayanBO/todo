@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>todo — CLI Reference</title>
+  <meta name="description" content="Complete reference for the todo CLI — all commands, flags, arguments, and examples.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://rayanbo.github.io/todo-cli/documentation/">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://rayanbo.github.io/todo-cli/documentation/">
+  <meta property="og:title" content="todo — CLI Reference">
+  <meta property="og:description" content="Complete reference for the todo CLI — all commands, flags, arguments, and examples.">
+  <meta property="og:image" content="https://rayanbo.github.io/todo-cli/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="../favicon.svg">
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <a href="../" class="logo"><span>~</span>/todo</a>
+    <nav class="header-links" aria-label="Main navigation">
+      <a href="../">Home</a>
+      <a href="./" class="active">Docs</a>
+      <a href="https://github.com/rayanbo/todo-cli" target="_blank" rel="noopener" class="btn-outline">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8"/></svg>
+        <span>GitHub</span>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="docs-layout">
+  <aside class="docs-sidebar" id="sidebar">
+    <ul class="docs-minimap" id="minimap">
+      <li><a href="#getting-started">Getting Started</a></li>
+      <li><a href="#creating-items">Creating Items</a></li>
+      <li><a href="#reading-items">Reading Items</a></li>
+      <li><a href="#modifying-items">Modifying Items</a></li>
+      <li><a href="#status-deletion">Status &amp; Deletion</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#file-format">File Format</a></li>
+    </ul>
+  </aside>
+
+  <div class="docs-content">
+    <h1>CLI Reference</h1>
+    <p class="subtitle">Everything you need to use <span class="mono">todo</span> from the command line.</p>
+
+    <div class="cmd-group" id="getting-started">
+      <h2>Getting Started</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">init</div>
+        <div class="cmd-syntax">todo init [--force]</div>
+        <div class="cmd-desc">Create a new TODO.md file in the current directory. Fails if a valid TODO.md already exists unless --force is used.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--force</td><td>false</td><td>Overwrite existing TODO.md</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo init</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="creating-items">
+      <h2>Creating Items</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">add --task</div>
+        <div class="cmd-syntax">todo add --task &lt;description&gt; [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--priority &lt;level&gt;] [--due &lt;date&gt;]</div>
+        <div class="cmd-desc">Add a new task with an auto-generated 4-character ID. Optionally assign actors, tags, priority, and due date.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--task</td><td>—</td><td>Task description (required)</td></tr>
+          <tr><td>--actors</td><td>—</td><td>Comma-separated actor IDs to assign</td></tr>
+          <tr><td>--tags</td><td>—</td><td>Comma-separated tags</td></tr>
+          <tr><td>--priority</td><td>—</td><td>Priority level (low, medium, high)</td></tr>
+          <tr><td>--due</td><td>—</td><td>Due date in YYYY-MM-DD HH:MM format</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo add --task "Build login" --actors u0v1 --priority high</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-name">add --actor</div>
+        <div class="cmd-syntax">todo add --actor &lt;pseudo&gt; [--pic &lt;url&gt;]</div>
+        <div class="cmd-desc">Add a new actor (team member) with an auto-generated ID.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--actor</td><td>—</td><td>Actor pseudo (required)</td></tr>
+          <tr><td>--pic</td><td>—</td><td>URL or path to avatar image</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo add --actor "Alice" --pic https://example.com/avatar.png</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-name">add --comment</div>
+        <div class="cmd-syntax">todo add --comment &lt;text&gt; --task-id &lt;id&gt;</div>
+        <div class="cmd-desc">Add a comment to an existing task.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--comment</td><td>—</td><td>Comment text (required)</td></tr>
+          <tr><td>--task-id</td><td>—</td><td>ID of the task to attach the comment to (required)</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo add --comment "Started on this" --task-id a1b2</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="reading-items">
+      <h2>Reading Items</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">list</div>
+        <div class="cmd-syntax">todo list [--tasks] [--actors] [--comments] [--status &lt;status&gt;] [--search &lt;query&gt;]</div>
+        <div class="cmd-desc">Display items. With no flags, shows all tasks grouped by status. Supports filtering by status and text search.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--tasks</td><td>false</td><td>Show only tasks</td></tr>
+          <tr><td>--actors</td><td>false</td><td>Show only actors</td></tr>
+          <tr><td>--comments</td><td>false</td><td>Show only comments</td></tr>
+          <tr><td>--status</td><td>—</td><td>Filter tasks by status</td></tr>
+          <tr><td>--search</td><td>—</td><td>Search tasks by text or tags</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo list --status en-cours</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="modifying-items">
+      <h2>Modifying Items</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">update</div>
+        <div class="cmd-syntax">todo update &lt;id&gt; [--description &lt;text&gt;] [--due &lt;date&gt;] [--priority &lt;level&gt;] [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--blocked-reason &lt;text&gt;]</div>
+        <div class="cmd-desc">Update any item by its ID. Available flags depend on the item type (task, actor, or comment).</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Target</th><th>Description</th></tr>
+          <tr><td>--description</td><td>task</td><td>New task description</td></tr>
+          <tr><td>--due</td><td>task</td><td>New due date</td></tr>
+          <tr><td>--priority</td><td>task</td><td>New priority (low, medium, high)</td></tr>
+          <tr><td>--actors</td><td>task</td><td>Replace assigned actor IDs (comma-separated)</td></tr>
+          <tr><td>--tags</td><td>task</td><td>Replace tags (comma-separated)</td></tr>
+          <tr><td>--blocked-reason</td><td>task</td><td>Reason when task is blocked</td></tr>
+          <tr><td>--name</td><td>actor</td><td>New pseudo</td></tr>
+          <tr><td>--pic</td><td>actor</td><td>New picture URL/path</td></tr>
+          <tr><td>--text</td><td>comment</td><td>New comment text</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo update a1b2 --description "Updated task" --priority high</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-name">update (actor)</div>
+        <div class="cmd-syntax">todo update &lt;id&gt; --name &lt;pseudo&gt; [--pic &lt;url&gt;] [--actor-type &lt;type&gt;]</div>
+        <div class="cmd-desc">Update an actor's pseudo, picture, or type (Human / AgentIa).</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo update u0v1 --name "Bob" --actor-type AgentIa</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-name">update (comment)</div>
+        <div class="cmd-syntax">todo update &lt;id&gt; --text &lt;new-text&gt;</div>
+        <div class="cmd-desc">Update a comment's text.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo update c1d2 --text "Updated comment"</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="status-deletion">
+      <h2>Status &amp; Deletion</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">status</div>
+        <div class="cmd-syntax">todo status &lt;id&gt; --set &lt;status&gt; [--reason &lt;text&gt;]</div>
+        <div class="cmd-desc">Change a task's status. Status values: todo, en-cours, done, bloqued. Provide a reason when setting to bloqued.</div>
+        <table class="cmd-flags">
+          <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
+          <tr><td>--set</td><td>—</td><td>New status (todo | en-cours | done | bloqued)</td></tr>
+          <tr><td>--reason</td><td>—</td><td>Required when status is bloqued</td></tr>
+        </table>
+        <div class="cmd-example"><span class="prompt">$</span> todo status a1b2 --set done</div>
+      </div>
+      <div class="cmd-block">
+        <div class="cmd-name">delete</div>
+        <div class="cmd-syntax">todo delete &lt;id&gt;</div>
+        <div class="cmd-desc">Delete a task, actor, or comment by ID. Cascade removes the ID from all references.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo delete a1b2</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="dashboard">
+      <h2>Dashboard</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">dashboard</div>
+        <div class="cmd-syntax">todo dashboard</div>
+        <div class="cmd-desc">Start the web dashboard server. Automatically finds an available port starting at 8383. Open http://127.0.0.1:8383 in your browser.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo dashboard</div>
+        <div class="cmd-desc" style="margin-top:10px">The dashboard features two view modes:<br>
+          <strong>List view</strong> — tasks grouped by status with inline detail, comments, and CRUD modals.<br>
+          <strong>Kanban view</strong> — drag-and-drop columns by status with quick-add buttons.</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="file-format">
+      <h2>File Format</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">TODO.md</div>
+        <div class="cmd-desc">A plain Markdown document with three sections: Tasks, Actors, and Comments.</div>
+        <div class="cmd-example">
+# Tasks
+
+- [ ] a1b2 **Build login**
+  - **Actors**: u0v1
+  - **Priority**: high
+  - **Created**: 2026-07-07 12:00
+
+- [x] x9k2 **Deploy to prod**
+  - **Due**: 2026-07-15 18:00
+
+# Actors
+
+- u0v1
+  - **Pseudo**: Alice
+  - **Pic**: https://example.com/alice.png
+  - **Type**: Human
+
+# Comments
+
+- c1d2
+  - **Text**: This is a comment
+  - **Task**: a1b2
+  - **Actors**: u0v1
+        </div>
+      </div>
+    </div>
+
+    <div class="cmd-group-end"></div>
+  </div>
+</main>
+
+<footer>
+  <a href="../" class="logo"><span>~</span>/todo</a>
+  <p>A personal project by <a href="https://github.com/rayanbo" target="_blank" rel="noopener">Rayan Rav</a></p>
+  <div class="links">
+    <a href="../">Home</a>
+    <a href="https://github.com/rayanbo/todo-cli" target="_blank" rel="noopener">GitHub</a>
+    <a href="https://github.com/rayanbo/todo-cli/releases" target="_blank" rel="noopener">Releases</a>
+  </div>
+  <div class="build-info">Built with Rust &middot; Open source (MIT)</div>
+</footer>
+
+<script>
+// Highlight active section in minimap on scroll
+const sections = document.querySelectorAll(".cmd-group");
+const links = document.querySelectorAll(".docs-minimap a");
+
+function updateActive() {
+  let current = "";
+  sections.forEach(s => {
+    const top = s.getBoundingClientRect().top;
+    if (top <= 120) current = s.id;
+  });
+  links.forEach(a => {
+    a.classList.toggle("active", a.getAttribute("href") === "#" + current);
+  });
+}
+
+window.addEventListener("scroll", updateActive, { passive: true });
+updateActive();
+</script>
+</body>
+</html>

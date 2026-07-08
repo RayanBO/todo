@@ -142,6 +142,15 @@ enum Commands {
     },
 }
 
+fn parse_priority_opt(p: &Option<String>) -> Result<Option<Priority>, String> {
+    match p.as_deref() {
+        None => Ok(None),
+        Some(s) => Priority::from_str(s)
+            .map(Some)
+            .ok_or_else(|| format!("Invalid priority '{}'. Use: low, medium, high", s)),
+    }
+}
+
 fn main() {
     if std::env::args().len() <= 1 {
         if commands::is_installed() {
@@ -168,9 +177,13 @@ fn main() {
                 let actor_ids: Vec<String> = actors.as_ref()
                     .map(|s| s.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect())
                     .unwrap_or_default();
-                let prio = priority.as_deref().and_then(Priority::from_str);
-                let due_date = due.as_deref().and_then(|d| NaiveDateTime::parse_from_str(d, "%Y-%m-%d %H:%M").ok());
-                commands::add_task(desc, &actor_ids, tag, prio, due_date, None)
+                match parse_priority_opt(priority) {
+                    Err(e) => Err(e),
+                    Ok(prio) => {
+                        let due_date = due.as_deref().and_then(|d| NaiveDateTime::parse_from_str(d, "%Y-%m-%d %H:%M").ok());
+                        commands::add_task(desc, &actor_ids, tag, prio, due_date, None)
+                    }
+                }
             } else if let Some(pseudo) = actor {
                 commands::add_actor(Some(pseudo), pic.as_deref())
             } else if let Some(text) = comment {
@@ -183,8 +196,10 @@ fn main() {
             }
         }
         Commands::List { tasks, actors, comments, tag, priority, search, overdue } => {
-            let prio_filter = priority.as_deref().and_then(Priority::from_str);
-            commands::list(*tasks, *actors, *comments, tag, prio_filter, search.as_deref(), *overdue)
+            match parse_priority_opt(priority) {
+                Err(e) => Err(e),
+                Ok(prio_filter) => commands::list(*tasks, *actors, *comments, tag, prio_filter, search.as_deref(), *overdue),
+            }
         }
         Commands::Update { id, description, due, actors, comments, name, pic, text, tag, priority } => {
             commands::update(id, description.as_deref(), due.as_deref(), name.as_deref(), text.as_deref(), actors.as_deref(), comments.as_deref(), pic.as_deref(), tag.as_deref(), priority.as_deref(), None, None)

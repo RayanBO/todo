@@ -101,20 +101,23 @@ fn handle_client(mut stream: TcpStream) {
 }
 
 fn url_decode(s: &str) -> String {
-    let mut out = String::new();
+    // Decode into bytes first, then interpret as UTF-8 so multibyte
+    // characters (accents, non-latin paths) survive intact.
+    let mut bytes: Vec<u8> = Vec::new();
     let mut chars = s.chars();
     while let Some(c) = chars.next() {
         if c == '%' {
             let hi = chars.next().and_then(|c| c.to_digit(16)).unwrap_or(0) as u8;
             let lo = chars.next().and_then(|c| c.to_digit(16)).unwrap_or(0) as u8;
-            out.push((hi * 16 + lo) as char);
+            bytes.push(hi * 16 + lo);
         } else if c == '+' {
-            out.push(' ');
+            bytes.push(b' ');
         } else {
-            out.push(c);
+            let mut buf = [0u8; 4];
+            bytes.extend_from_slice(c.encode_utf8(&mut buf).as_bytes());
         }
     }
-    out
+    String::from_utf8_lossy(&bytes).into_owned()
 }
 
 fn api_pic_bytes(uri: &str) -> Vec<u8> {
@@ -135,19 +138,21 @@ fn api_pic_bytes(uri: &str) -> Vec<u8> {
     if file_path.is_empty() {
         return json_response(400, serde_json::json!({"error": "Missing path"})).into_bytes();
     }
+    // Only serve image files: prevents this endpoint from reading arbitrary
+    // local files (source, secrets, etc.) referenced via ?path=.
+    let ext = file_path.rsplit('.').next().unwrap_or("").to_lowercase();
+    let mime = match ext.as_str() {
+        "jpg" | "jpeg" => "image/jpeg",
+        "png" => "image/png",
+        "gif" => "image/gif",
+        "svg" => "image/svg+xml",
+        "webp" => "image/webp",
+        "bmp" => "image/bmp",
+        "ico" => "image/x-icon",
+        _ => return json_response(403, serde_json::json!({"error": "Only image files allowed"})).into_bytes(),
+    };
     match fs::read(&file_path) {
         Ok(data) => {
-            let ext = file_path.rsplit('.').next().unwrap_or("").to_lowercase();
-            let mime = match ext.as_str() {
-                "jpg" | "jpeg" => "image/jpeg",
-                "png" => "image/png",
-                "gif" => "image/gif",
-                "svg" => "image/svg+xml",
-                "webp" => "image/webp",
-                "bmp" => "image/bmp",
-                "ico" => "image/x-icon",
-                _ => "application/octet-stream",
-            };
             let header = format!(
                 "HTTP/1.1 200 OK\r\nContent-Type: {}\r\nContent-Length: {}\r\nAccess-Control-Allow-Origin: *\r\nCache-Control: no-cache\r\n\r\n",
                 mime,

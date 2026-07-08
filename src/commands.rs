@@ -6,21 +6,65 @@ use crate::tags;
 use chrono::NaiveDateTime;
 use std::fs;
 use std::io::{stdin, stdout, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
 
 const TODO_FILE: &str = "./TODO.md";
 
-fn read_todo() -> Result<TodoFile, String> {
-    if !Path::new(TODO_FILE).exists() {
-        return Err("TODO.md not found. Run `todo init` first.".to_string());
+// Serializes read-modify-write across dashboard threads to prevent lost updates.
+static FILE_LOCK: Mutex<()> = Mutex::new(());
+
+// Globally-unique 4-char ID across tasks, actors and comments.
+fn unique_id(todo: &TodoFile) -> String {
+    loop {
+        let id = generate_id();
+        let taken = todo.tasks.iter().any(|t| t.id.as_deref() == Some(id.as_str()))
+            || todo.actors.iter().any(|a| a.id == id)
+            || todo.comments.iter().any(|c| c.id == id);
+        if !taken {
+            return id;
+        }
     }
-    let content = fs::read_to_string(TODO_FILE).map_err(|e| format!("Read error: {}", e))?;
+}
+
+// Walk up from the current directory to find an existing TODO.md (git-style),
+// so the tool works from any subdirectory of the project.
+fn find_todo() -> Option<PathBuf> {
+    let mut dir = std::env::current_dir().ok()?;
+    loop {
+        let candidate = dir.join("TODO.md");
+        if candidate.exists() {
+            return Some(candidate);
+        }
+        if !dir.pop() {
+            return None;
+        }
+    }
+}
+
+fn todo_path() -> PathBuf {
+    find_todo().unwrap_or_else(|| PathBuf::from(TODO_FILE))
+}
+
+fn read_todo() -> Result<TodoFile, String> {
+    let path = match find_todo() {
+        Some(p) => p,
+        None => return Err("TODO.md not found. Run `todo init` first.".to_string()),
+    };
+    let content = fs::read_to_string(&path).map_err(|e| format!("Read error: {}", e))?;
     parse_todo(&content)
 }
 
-fn write_todo(todo: &TodoFile) -> Result<(), String> {
+fn write_todo_at(path: &Path, todo: &TodoFile) -> Result<(), String> {
     let content = serialize_todo(todo);
-    fs::write(TODO_FILE, content).map_err(|e| format!("Write error: {}", e))
+    // Write to temp then rename so readers never observe a half-written file.
+    let tmp = path.with_extension("md.tmp");
+    fs::write(&tmp, content).map_err(|e| format!("Write error: {}", e))?;
+    fs::rename(&tmp, path).map_err(|e| format!("Rename error: {}", e))
+}
+
+fn write_todo(todo: &TodoFile) -> Result<(), String> {
+    write_todo_at(&todo_path(), todo)
 }
 
 fn is_valid_format(content: &str) -> bool {
@@ -37,9 +81,10 @@ fn prompt_overwrite() -> Result<bool, String> {
 }
 
 pub fn init(force: bool) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     if !Path::new(TODO_FILE).exists() {
         let todo = TodoFile::empty();
-        write_todo(&todo)?;
+        write_todo_at(Path::new(TODO_FILE), &todo)?;
         println!("Created TODO.md");
         return Ok(());
     }
@@ -49,7 +94,7 @@ pub fn init(force: bool) -> Result<(), String> {
     if is_valid_format(&content) {
         if force {
             let todo = TodoFile::empty();
-            write_todo(&todo)?;
+            write_todo_at(Path::new(TODO_FILE), &todo)?;
             println!("Overwritten TODO.md");
             return Ok(());
         }
@@ -58,7 +103,7 @@ pub fn init(force: bool) -> Result<(), String> {
 
     if force || prompt_overwrite()? {
         let todo = TodoFile::empty();
-        write_todo(&todo)?;
+        write_todo_at(Path::new(TODO_FILE), &todo)?;
         println!("Overwritten TODO.md");
     } else {
         println!("Aborted.");
@@ -67,8 +112,9 @@ pub fn init(force: bool) -> Result<(), String> {
 }
 
 pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], priority: Option<Priority>, due: Option<NaiveDateTime>, status: Option<TaskStatus>) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
-    let id = generate_id();
+    let id = unique_id(&todo);
     let task = Task {
         id: Some(id.clone()),
         status: status.unwrap_or(TaskStatus::Todo),
@@ -88,8 +134,9 @@ pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], pr
 }
 
 pub fn add_actor(pseudo: Option<&str>, pic: Option<&str>) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
-    let id = generate_id();
+    let id = unique_id(&todo);
     let actor = Actor {
         id: id.clone(),
         pseudo: pseudo.map(|s| s.to_string()),
@@ -103,13 +150,14 @@ pub fn add_actor(pseudo: Option<&str>, pic: Option<&str>) -> Result<(), String> 
 }
 
 pub fn add_comment(text: &str, task_id: &str, actor_ids: &[String]) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
 
     if !todo.tasks.iter().any(|t| t.id.as_deref() == Some(task_id)) {
         return Err(format!("Task ID {} not found.", task_id));
     }
 
-    let id = generate_id();
+    let id = unique_id(&todo);
     let comment = Comment {
         id: id.clone(),
         text: text.to_string(),
@@ -221,6 +269,7 @@ pub fn list(tasks: bool, actors: bool, comments: bool, tag_filter: &[String], pr
 }
 
 pub fn update(id: &str, description: Option<&str>, due: Option<&str>, name: Option<&str>, text: Option<&str>, actors: Option<&str>, comments: Option<&str>, pic: Option<&str>, tags: Option<&str>, priority: Option<&str>, blocked_reason: Option<&str>, actor_type: Option<&str>) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
     let mut found = false;
 
@@ -292,6 +341,7 @@ pub fn update(id: &str, description: Option<&str>, due: Option<&str>, name: Opti
 }
 
 pub fn delete(id: &str) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
     let before = todo.tasks.len() + todo.actors.len() + todo.comments.len();
 
@@ -324,6 +374,7 @@ pub fn delete(id: &str) -> Result<(), String> {
 }
 
 pub fn set_status(id: &str, new_status: &str, reason: Option<&str>) -> Result<(), String> {
+    let _guard = FILE_LOCK.lock().map_err(|_| "Lock poisoned".to_string())?;
     let mut todo = read_todo()?;
     let status = TaskStatus::from_str(new_status)
         .ok_or_else(|| format!("Invalid status '{}'. Use: todo, en-cours, done, bloqued", new_status))?;

@@ -4,7 +4,10 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1.0" />
         <title>TODO</title>
-        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+        <!-- Inlined as data URI: the dashboard server only routes "/" and /api/*,
+             so a separate /favicon.svg request would 404. -->
+        <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1.5' y='1.5' width='29' height='29' fill='%237C3AED' stroke='%2314121F' stroke-width='3'/%3E%3Crect x='8' y='9' width='16' height='3' fill='%23fff'/%3E%3Crect x='8' y='15' width='12' height='3' fill='%23fff' opacity='.8'/%3E%3Crect x='8' y='21' width='8' height='3' fill='%23fff' opacity='.55'/%3E%3C/svg%3E" />
+        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
         <style>
             *,
             *::before,
@@ -957,6 +960,111 @@
                     max-width: 95vw;
                 }
             }
+
+            /* ======================================================
+               NEO-BRUTALISM THEME OVERRIDE · White + Violet · light
+               Redefine tokens, then thicken borders + hard shadows.
+               ====================================================== */
+            :root {
+                --ink: #14121f;
+                --bg: #efeafb;
+                --surface: #ffffff;
+                --border: #14121f;
+                --border2: #14121f;
+                --text: #14121f;
+                --text2: #4a4560;
+                --text3: #7c7791;
+                --primary: #7c3aed;
+                --primary-h: #5b21b6;
+                --primary-tint: #ede7fe;
+                --radius: 0px;
+                --radius-sm: 0px;
+                --shadow: none;
+            }
+            body {
+                background-image:
+                    linear-gradient(rgba(20, 18, 31, 0.045) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(20, 18, 31, 0.045) 1px, transparent 1px);
+                background-size: 28px 28px;
+            }
+            /* Borders thinner across the board; hard shadow kept on the modal only. */
+            header { border-bottom: 2px solid var(--ink); }
+            .h-row1 { border-bottom: 2px solid var(--ink); }
+            .logo {
+                border-radius: 0;
+                border: 2px solid var(--ink);
+                background: var(--primary);
+                box-shadow: none;
+                font-family: "Space Grotesk", sans-serif;
+            }
+            .h-row1 h1 {
+                font-family: "Space Grotesk", sans-serif;
+                text-transform: uppercase;
+                letter-spacing: -0.4px;
+                font-weight: 700;
+            }
+            .tabs button { font-weight: 700; border-bottom: none; }
+            .tabs button.act {
+                color: #fff;
+                background: var(--primary);
+                border: 2px solid var(--ink);
+                box-shadow: none;
+            }
+            .btn {
+                border: 2px solid var(--ink);
+                box-shadow: none;
+                font-weight: 700;
+                transition: background 0.12s, border-color 0.12s;
+            }
+            .btn:hover { border-color: var(--ink); background: var(--primary-tint); transform: none; }
+            .btn-pri { background: var(--primary); border-color: var(--ink); color: #fff; }
+            .btn-pri:hover { background: var(--primary-h); }
+            .btn-danger { color: #fff; background: var(--blocked); border-color: var(--ink); }
+            .btn-danger:hover { background: #dc2626; }
+            .search input { border: 2px solid var(--ink); }
+            .filter-pop { border: 2px solid var(--ink); box-shadow: none; }
+            .sg { border: 2px solid var(--ink); box-shadow: none; }
+            .sh {
+                background: var(--primary-tint);
+                border-bottom: 2px solid var(--ink);
+                font-family: "Space Grotesk", sans-serif;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+            }
+            .col-head { border-bottom: 2px solid var(--ink); font-weight: 700; }
+            .task-item { border-bottom: 1.5px solid var(--ink); }
+            .chip { border: 1.5px solid var(--ink); }
+            .prio-pill { border: 1.5px solid var(--ink); }
+            .kc { border: 2px solid var(--ink); box-shadow: none; }
+            .kch {
+                border-bottom: 2px solid var(--ink);
+                font-family: "Space Grotesk", sans-serif;
+                text-transform: uppercase;
+            }
+            .kb {
+                border: 2px solid var(--ink);
+                box-shadow: none;
+                transition: border-color 0.12s, background 0.12s;
+            }
+            .kb:hover { border-color: var(--primary); transform: none; }
+            .kcl.d-over { background: var(--primary-tint); border-radius: 0; }
+            .mo { background: rgba(20, 18, 31, 0.45); }
+            /* Modal keeps the signature hard offset shadow. */
+            .m { border: 2px solid var(--ink); border-radius: 0; box-shadow: 8px 8px 0 var(--ink); }
+            .m h2 { font-family: "Space Grotesk", sans-serif; text-transform: uppercase; }
+            .fg input, .fg textarea, .fg select { border: 2px solid var(--ink); }
+            .fg input:focus, .fg textarea:focus, .fg select:focus {
+                border-color: var(--primary);
+                box-shadow: none;
+            }
+            .ck-g { border: 2px solid var(--ink); }
+            .ck-g label { border: 2px solid var(--ink); border-radius: 0; }
+            .ck-g label.ckd { background: var(--primary); border-color: var(--ink); }
+            .td-actor-chip { border: 2px solid var(--ink); border-radius: 0; }
+            .td-status select, .cmt-sel, .cmta textarea { border: 2px solid var(--ink); }
+            .at th { border-bottom: 2px solid var(--ink); text-transform: uppercase; }
+            .at td { border-bottom: 1px solid var(--primary-tint); }
+            .toast { border: 2px solid var(--ink); box-shadow: none; }
         </style>
     </head>
     <body>

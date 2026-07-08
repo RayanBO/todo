@@ -3,6 +3,12 @@ name = "todo-cli"
 version = "0.1.0"
 edition = "2024"
 
+# Binary is named `todo` (not `todo-cli`) so the installed command, the
+# install.ps1 build path, and the docs all match.
+[[bin]]
+name = "todo"
+path = "src/main.rs"
+
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 clap_complete = "4"

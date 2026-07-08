@@ -17,7 +17,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <script type="application/ld+json">
@@ -93,7 +93,7 @@
 
 <section class="features" id="features">
   <div class="container">
-    <h2>Everything in <span style="color:var(--teal)">one tool</span></h2>
+    <h2>Everything in <span style="color:var(--brand)">one tool</span></h2>
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">~$</div>
@@ -133,7 +133,7 @@
 
 <section class="dashboard-preview" id="dashboard">
   <div class="container">
-    <h2>Dashboard at <span style="color:var(--teal)">a glance</span></h2>
+    <h2>Dashboard at <span style="color:var(--brand)">a glance</span></h2>
     <p class="subtitle" style="text-align:center;color:var(--text2);font-size:15px;margin-top:8px">Run <code class="mono" style="background:var(--bg-code);padding:2px 6px;border-radius:4px;font-size:13px">todo dashboard</code> and open http://127.0.0.1:8383</p>
     <div class="preview-frame">
       <span class="preview-placeholder">&#9674; Open the dashboard to see your tasks in list and kanban views</span>
@@ -143,7 +143,7 @@
 
 <section class="install" id="install">
   <div class="container">
-    <h2>Get started <span style="color:var(--teal)">in seconds</span></h2>
+    <h2>Get started <span style="color:var(--brand)">in seconds</span></h2>
     <p class="subtitle">Download a single binary for your platform — no runtime, no dependencies.</p>
     <div class="version-bar">
       <span class="version-badge" id="versionBadge">v0.1.0</span>
@@ -230,66 +230,87 @@ document.getElementById("copyBtn").addEventListener("click", function() {
   });
 });
 
-// Terminal animations
-const heroLines = [
-  `  <span class="terminal-prompt">~$</span> <span class="terminal-command">todo init</span>`,
-  `  <span class="terminal-output">  Created TODO.md</span>`,
-  `  <span class="terminal-prompt">~$</span> <span class="terminal-command">todo add "Build CLI" --priority high --tags core,cli</span>`,
-  `  <span class="terminal-output-success">  Added task a1b2</span>`,
-  `  <span class="terminal-prompt">~$</span> <span class="terminal-command">todo add "Write tests" --actors alice</span>`,
-  `  <span class="terminal-output-success">  Added task c3d4</span>`,
-  `  <span class="terminal-prompt">~$</span> <span class="terminal-command">todo list</span>`,
-  `  <span class="terminal-output">  [ ] a1b2 Build CLI</span>`,
-  `  <span class="terminal-output">  [ ] c3d4 Write tests  @alice</span>`,
-  `  <span class="terminal-prompt">~$</span> <span class="terminal-command"><span class="terminal-cursor"></span></span>`
-];
+// Terminal animations — real typewriter with a single blinking caret.
+const CURSOR = '<span class="terminal-cursor"></span>';
+const PROMPT = '  <span class="terminal-prompt">~$</span> ';
 
-const demoSnippets = [
-  { cmd: "todo add \"Design API\" --tags backend", out: "  Added task x1y2" },
-  { cmd: "todo add \"Setup CI\" --priority medium --actors bob", out: "  Added task z3w4" },
-  { cmd: "todo status a1b2 en-cours", out: "  Updated a1b2 to En cours" },
-  { cmd: "todo list --status en-cours", out: "  [~] a1b2 Build CLI\n  [~] x1y2 Design API  #backend" },
-  { cmd: "todo dashboard", out: "  Opening http://127.0.0.1:8383" }
-];
-
-let heroIdx = 0;
-const heroEl = document.getElementById("heroTerminalBody");
-
-function typeHero() {
-  if (!heroEl) return;
-  heroEl.innerHTML = heroLines.slice(0, heroIdx + 1).join("\n") + `<span class="terminal-cursor"></span>`;
-  heroIdx++;
-  if (heroIdx < heroLines.length) {
-    setTimeout(typeHero, heroIdx < 3 ? 600 : heroIdx < 6 ? 500 : heroIdx < 8 ? 350 : 400);
-  }
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-let demoIdx = 0;
-let demoStep = 0;
-const demoEl = document.getElementById("demoTerminalBody");
+function typeTerminal(el, steps) {
+  if (!el) return;
+  const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let html = "";   // committed, completed lines
+  let si = 0;
 
-function runDemo() {
-  if (!demoEl) return;
-  if (demoStep === 0) {
-    const s = demoSnippets[demoIdx];
-    demoEl.innerHTML += `<span class="terminal-prompt">~$</span> <span class="terminal-command">${s.cmd}</span>\n`;
-    demoStep = 1;
-    setTimeout(runDemo, 800);
-  } else {
-    const s = demoSnippets[demoIdx];
-    demoEl.innerHTML += `<span class="terminal-output-success">${s.out}</span>\n`;
-    demoIdx++;
-    demoStep = 0;
-    if (demoIdx < demoSnippets.length) {
-      setTimeout(runDemo, 1500);
-    } else {
-      demoEl.innerHTML += `<span class="terminal-prompt">~$</span> <span class="terminal-command"><span class="terminal-cursor"></span></span>`;
-    }
+  // Exactly one cursor: appended once, always at the caret.
+  const render = cur => { el.innerHTML = html + cur + CURSOR; };
+  const finish = () => { el.innerHTML = html + PROMPT + CURSOR; };
+
+  const cmdHTML = t => PROMPT + '<span class="terminal-command">' + esc(t) + "</span>";
+  const outHTML = (t, cls) =>
+    t.split("\n").map(l => '<span class="' + cls + '">' + esc(l) + "</span>").join("\n");
+
+  function typeCmd(text, done) {
+    let i = 0;
+    (function step() {
+      render(PROMPT + '<span class="terminal-command">' + esc(text.slice(0, i)) + "</span>");
+      if (i < text.length) { i++; setTimeout(step, 30 + Math.random() * 45); }
+      else { html += cmdHTML(text) + "\n"; done(); }
+    })();
   }
+
+  function printOut(text, cls, done) {
+    html += outHTML(text, cls) + "\n";
+    render("");
+    setTimeout(done, 240);
+  }
+
+  function next() {
+    if (si >= steps.length) { finish(); return; }
+    const s = steps[si++];
+    if (s.type === "cmd") typeCmd(s.text, () => setTimeout(next, 260));
+    else printOut(s.text, s.cls || "terminal-output", next);
+  }
+
+  if (reduce) {
+    html = steps.map(s =>
+      s.type === "cmd" ? cmdHTML(s.text) : outHTML(s.text, s.cls || "terminal-output")
+    ).join("\n") + "\n";
+    finish();
+    return;
+  }
+  next();
 }
 
-setTimeout(typeHero, 400);
-setTimeout(runDemo, 3000);
+const heroSteps = [
+  { type: "cmd", text: "todo init" },
+  { type: "out", text: "  Created TODO.md" },
+  { type: "cmd", text: 'todo add "Build CLI" --priority high --tags core,cli' },
+  { type: "out", text: "  Added task a1b2", cls: "terminal-output-success" },
+  { type: "cmd", text: 'todo add "Write tests" --actors alice' },
+  { type: "out", text: "  Added task c3d4", cls: "terminal-output-success" },
+  { type: "cmd", text: "todo list" },
+  { type: "out", text: "  [ ] a1b2 Build CLI" },
+  { type: "out", text: "  [ ] c3d4 Write tests  @alice" }
+];
+
+const demoSteps = [
+  { type: "cmd", text: 'todo add "Design API" --tags backend' },
+  { type: "out", text: "  Added task x1y2", cls: "terminal-output-success" },
+  { type: "cmd", text: 'todo add "Setup CI" --priority medium --actors bob' },
+  { type: "out", text: "  Added task z3w4", cls: "terminal-output-success" },
+  { type: "cmd", text: "todo status a1b2 en-cours" },
+  { type: "out", text: "  Updated a1b2 to En cours", cls: "terminal-output-success" },
+  { type: "cmd", text: "todo list --status en-cours" },
+  { type: "out", text: "  [~] a1b2 Build CLI\n  [~] x1y2 Design API  #backend" },
+  { type: "cmd", text: "todo dashboard" },
+  { type: "out", text: "  Opening http://127.0.0.1:8383", cls: "terminal-output-success" }
+];
+
+setTimeout(() => typeTerminal(document.getElementById("heroTerminalBody"), heroSteps), 400);
+setTimeout(() => typeTerminal(document.getElementById("demoTerminalBody"), demoSteps), 3000);
 </script>
 </body>
 </html>

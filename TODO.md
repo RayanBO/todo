@@ -5,7 +5,7 @@
   - **Comments**: Zkkd,RpSG,hBfD
   - **Tags**: asa, ss
 
-- [~] 5DST **-** un ligne
+- [B] 5DST **-** un ligne
   - **Due**: 2026-07-24 17:00
   - **Actors**: OmsZ,7nGA
   - **Comments**: BvpM,MQvY

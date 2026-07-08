@@ -10,7 +10,7 @@ fn todo_binary() -> PathBuf {
         .status()
         .expect("Failed to build");
     assert!(status.success(), "cargo build failed");
-    root.join("target/debug/todo-cli.exe")
+    root.join("target/debug/todo.exe")
 }
 
 fn setup(name: &str) -> PathBuf {

@@ -603,6 +603,43 @@ section {
   text-decoration: underline;
 }
 
+.platform-dl.msi {
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.platform-dl.msi::before {
+  content: "MSI";
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--accent-border);
+  border-radius: 3px;
+  padding: 0 5px;
+  line-height: 16px;
+}
+
+.install-msi-note {
+  text-align: center;
+  padding: 8px 18px 14px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: var(--text-tertiary);
+  display: none;
+}
+
+.install-msi-note.visible {
+  display: block;
+}
+
+.install-msi-note a {
+  color: var(--accent);
+}
+
 .install-box {
   max-width: 640px;
   margin: 0 auto;

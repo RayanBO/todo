@@ -213,6 +213,7 @@
       </div>
       <span class="platform-name">Windows</span>
       <span class="platform-dl" data-file="todo-windows-x64.exe">todo-windows-x64.exe</span>
+      <span class="platform-dl msi" data-file="todo-windows-x64.msi">todo-windows-x64.msi</span>
     </div>
     <div class="platform-card" data-platform="macos">
       <div class="platform-icon">
@@ -240,6 +241,9 @@
     <div class="install-code">
       <button class="copy-btn" id="copyBtn">Copy</button>
       <code id="installCmd">npx todo</code>
+    </div>
+    <div class="install-msi-note" id="msiNote">
+      Or download the <a href="https://github.com/RayanBO/todo/releases/latest/download/todo-windows-x64.msi">MSI installer</a> for a system-wide install
     </div>
   </div>
   <p class="install-source">Or build from <a href="https://github.com/RayanBO/todo" target="_blank" rel="noopener">source on GitHub</a></p>
@@ -360,6 +364,7 @@ document.querySelectorAll(".install-tab").forEach((btn) => {
     const tab = btn.dataset.tab;
     const cmd = commands[tab] || commands.npm;
     document.getElementById("installCmd").textContent = cmd;
+    document.getElementById("msiNote").classList.toggle("visible", tab === "windows");
   });
 });
 
@@ -367,6 +372,8 @@ const commands = {
   npm: "npx todo",
   cargo: "cargo install todo",
   windows: `curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-windows-x64.exe`,
+
+  msi: `https://github.com/RayanBO/todo/releases/latest/download/todo-windows-x64.msi`,
   macos: `curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-macos-arm64`,
   linux: `curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-linux-x64`
 };
@@ -387,12 +394,11 @@ fetch("https://api.github.com/repos/RayanBO/todo/releases/latest")
   .then((r) => r.json())
   .then((data) => {
     if (!data || !data.assets) return;
-    document.querySelectorAll(".platform-card").forEach((card) => {
-      const file = card.dataset.file || "";
-      const asset = data.assets.find((a) => a.name.includes(file));
-      const dlSpan = card.querySelector(".platform-dl");
-      if (asset && dlSpan) {
-        dlSpan.innerHTML = `<a href="${asset.browser_download_url}" download>${asset.name}</a>`;
+    document.querySelectorAll(".platform-dl[data-file]").forEach((span) => {
+      const name = span.dataset.file;
+      const asset = data.assets.find((a) => a.name === name);
+      if (asset) {
+        span.innerHTML = `<a href="${asset.browser_download_url}" download>${asset.name}</a>`;
       }
     });
   })

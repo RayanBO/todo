@@ -14,6 +14,22 @@
                 padding: 0;
             }
             :root {
+                --radius: 10px;
+                --radius-sm: 6px;
+                --todo: #8b5cf6;
+                --inprogress: #3b82f6;
+                --done: #22c55e;
+                --blocked: #ef4444;
+                --prio-h-bg: #fee2e2;
+                --prio-h-t: #dc2626;
+                --prio-m-bg: #fef3c7;
+                --prio-m-t: #b45309;
+                --prio-l-bg: #eef0f5;
+                --prio-l-t: #6b7280;
+                --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, sans-serif;
+            }
+            [data-theme="light"],
+            :root {
                 --bg: #f6f7fb;
                 --surface: #fff;
                 --border: #eceef4;
@@ -21,29 +37,56 @@
                 --text: #12131a;
                 --text2: #767b8c;
                 --text3: #a1a5b3;
-                --primary: #6d5ce6;
-                --primary-h: #5b4bd1;
-                --primary-tint: #eeecfd;
-                --todo: #8b5cf6;
-                --inprogress: #3b82f6;
-                --done: #22c55e;
-                --blocked: #ef4444;
-                --radius: 10px;
-                --radius-sm: 6px;
-                --shadow:
-                    0 1px 2px rgba(16, 24, 40, 0.04),
-                    0 2px 6px rgba(16, 24, 40, 0.05);
-                --prio-h-bg: #fee2e2;
-                --prio-h-t: #dc2626;
-                --prio-m-bg: #fef3c7;
-                --prio-m-t: #b45309;
-                --prio-l-bg: #eef0f5;
-                --prio-l-t: #6b7280;
+                --primary: #4A6CF7;
+                --primary-h: #3b5de7;
+                --primary-tint: #eef0fd;
+                --shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 2px 6px rgba(16, 24, 40, 0.05);
+                --modal-scrim: rgba(15, 16, 26, 0.35);
+                --card-hover: #fafafe;
+                --btn-danger-border: #fecaca;
+                --btn-danger-hover: #fef2f2;
+                --blocked-bg: #fef2f2;
+                --section-h-bg: #fbfbfd;
+            }
+            [data-theme="dark"] {
+                --bg: #09090b;
+                --surface: #111113;
+                --border: #1f1f23;
+                --border2: #27272a;
+                --text: #fafafa;
+                --text2: #a1a1aa;
+                --text3: #71717a;
+                --primary: #4A6CF7;
+                --primary-h: #3b5de7;
+                --primary-tint: rgba(74, 108, 247, 0.12);
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.4);
+                --modal-scrim: rgba(0, 0, 0, 0.6);
+                --card-hover: #18181b;
+                --btn-danger-border: rgba(239, 68, 68, 0.25);
+                --btn-danger-hover: rgba(239, 68, 68, 0.1);
+                --blocked-bg: rgba(239, 68, 68, 0.1);
+                --section-h-bg: #18181b;
+            }
+            html {
+                scrollbar-width: thin;
+                scrollbar-color: var(--border2) transparent;
+            }
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--border2);
+                border-radius: 3px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: var(--text3);
             }
             body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    Oxygen, sans-serif;
+                font-family: var(--font-sans);
                 background: var(--bg);
                 color: var(--text);
                 height: 100vh;
@@ -217,12 +260,12 @@
                 border-color: var(--text3);
             }
             .btn-pri {
-                background: var(--text);
+                background: var(--primary);
                 color: #fff;
-                border-color: var(--text);
+                border-color: var(--primary);
             }
             .btn-pri:hover {
-                background: #000;
+                background: var(--primary-h);
             }
             .btn-sm {
                 padding: 4px 9px;
@@ -230,10 +273,10 @@
             }
             .btn-danger {
                 color: var(--blocked);
-                border-color: #fecaca;
+                border-color: var(--btn-danger-border);
             }
             .btn-danger:hover {
-                background: #fef2f2;
+                background: var(--btn-danger-hover);
             }
 
             .filter-wrap {
@@ -303,7 +346,7 @@
                 padding: 10px 14px;
                 font-size: 12.5px;
                 font-weight: 700;
-                background: #fbfbfd;
+                background: var(--section-h-bg);
                 border-bottom: 1px solid var(--border);
                 user-select: none;
             }
@@ -393,7 +436,7 @@
                 transition: 0.1s;
             }
             .task-row:hover {
-                background: #fafafe;
+                background: var(--card-hover);
             }
             .task-row input[type="checkbox"] {
                 width: 15px;
@@ -550,7 +593,7 @@
                 font-size: 12px;
                 color: var(--blocked);
                 padding: 6px 10px;
-                background: #fef2f2;
+                background: var(--blocked-bg);
                 border-radius: var(--radius-sm);
                 margin-bottom: 10px;
                 font-weight: 500;
@@ -754,7 +797,7 @@
                 display: none;
                 position: fixed;
                 inset: 0;
-                background: rgba(15, 16, 26, 0.35);
+                background: var(--modal-scrim);
                 z-index: 1000;
                 align-items: center;
                 justify-content: center;
@@ -894,6 +937,29 @@
                 vertical-align: middle;
             }
 
+            .theme-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                background: none;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                cursor: pointer;
+                color: var(--text3);
+                transition: color 0.15s, border-color 0.15s;
+                flex-shrink: 0;
+            }
+            .theme-toggle:hover {
+                color: var(--text);
+                border-color: var(--border2);
+            }
+            [data-theme="dark"] .theme-icon-sun { display: block; }
+            [data-theme="dark"] .theme-icon-moon { display: none; }
+            [data-theme="light"] .theme-icon-sun { display: none; }
+            [data-theme="light"] .theme-icon-moon { display: block; }
+
             .toast {
                 position: fixed;
                 bottom: 20px;
@@ -958,12 +1024,23 @@
                 }
             }
         </style>
+        <script>
+            (function() {
+                var t = localStorage.getItem("todo-theme");
+                if (!t) { t = window.matchMedia("(prefers-color-scheme:dark)").matches ? "dark" : "light"; }
+                document.documentElement.setAttribute("data-theme", t);
+            })();
+        </script>
     </head>
     <body>
         <header>
             <div class="h-row1">
                 <div class="logo">T</div>
                 <h1>TODO</h1>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
                 <div class="avatars" id="hdr-avatars"></div>
                 <button
                     class="av-add"
@@ -2325,10 +2402,16 @@
                 } else tt(r.error, "e");
             }
 
-            // clicking header avatars opens the members modal
             document
                 .getElementById("hdr-avatars")
                 .addEventListener("click", () => om("actors"));
+
+            document.getElementById("themeToggle").addEventListener("click", function () {
+                var t = document.documentElement.getAttribute("data-theme");
+                var n = t === "dark" ? "light" : "dark";
+                document.documentElement.setAttribute("data-theme", n);
+                localStorage.setItem("todo-theme", n);
+            });
 
             ld();
         </script>

@@ -1,28 +1,55 @@
-# todo — TODO CLI
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://img.shields.io/badge/status-active-4A6CF7?style=flat-square">
+    <img src="https://img.shields.io/badge/status-active-4A6CF7?style=flat-square">
+  </picture>
+  <img src="https://img.shields.io/badge/Rust-1.75+-deploy?style=flat-square&logo=rust&color=4A6CF7">
+  <img src="https://img.shields.io/badge/license-MIT-4A6CF7?style=flat-square">
+</p>
 
-**todo** is a portable CLI for managing project TODO.md files. Built with Rust, it ships as a single binary — no dependencies, no database, no cloud. When you need visuals, `todo dashboard` starts an embedded web server with two view modes: a classic list and a Kanban board with drag & drop.
+<h1 align="center">todo</h1>
+<p align="center">Portable CLI for project TODO.md files. Single binary, zero dependencies.</p>
 
-🌐 Landing page: [https://rayanbo.github.io/todo-cli/](https://rayanbo.github.io/todo-cli/)
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#cli-commands">CLI</a> •
+  <a href="#web-dashboard">Dashboard</a> •
+  <a href="#http-api">API</a> •
+  <a href="#build-from-source">Build</a>
+</p>
 
 ---
 
-## Architecture
+## Overview
 
-```
-todo (Rust CLI)
-  → TODO.md (tasks, actors, comments)
-  → Rust HTTP server (TcpListener)
-  → dashboard/index.html (static)
+`todo` manages tasks, actors, and comments directly in a plain-text `TODO.md` file — no database, no cloud, no lock-in. Everything stays version-control friendly and editable in any text editor.
+
+When you need a visual interface, `todo dashboard` spawns an embedded web server with a full-featured dashboard.
+
+## Quick Start
+
+```bash
+# Initialize a new TODO.md
+todo init
+
+# Add your first task
+todo add --task "Set up CI pipeline" --actors u0v1
+
+# Add an actor
+todo add --actor "Alice" --pic https://example.com/alice.png
+
+# Open the web dashboard
+todo dashboard
 ```
 
 ## Storage
 
-Project data lives in a plain `TODO.md` file — version-control friendly, readable in any editor:
+All data lives in a single `TODO.md` file at the project root.
 
 ```
 # Tasks
 
-- [ ] a1b2 **Build login page**
+- [ ] a1b2 **Set up CI pipeline**
     - **Actors**: u0v1
     - **Created**: 2026-07-07 12:00
 
@@ -36,59 +63,78 @@ Project data lives in a plain `TODO.md` file — version-control friendly, reada
 # Comments
 
 - c1d2 **Comment**
-    - **Text**: This is a comment
+    - **Text**: Let's use GitHub Actions
     - **Task**: a1b2
 ```
 
 ## CLI Commands
 
-```bash
-todo init [--force]
-todo add --task "description" [--actors id1,id2]
-todo add --actor "pseudo" [--pic url]
-todo add --comment "text" --task-id id
-todo list [--tasks] [--actors] [--comments]
-todo update <id> [--description text] [--due date] [--name pseudo] [--text text]
-todo delete <id>
-todo status <id> --set <status> [--reason text]
-todo dashboard
-```
+| Command | Description |
+|---|---|
+| `todo init [--force]` | Create a new TODO.md (overwrite with `--force`) |
+| `todo add --task <desc> [--actors ids]` | Create a task |
+| `todo add --actor <pseudo> [--pic url]` | Create an actor |
+| `todo add --comment <text> --task-id <id>` | Add a comment to a task |
+| `todo list [--tasks] [--actors] [--comments]` | List items in the terminal |
+| `todo update <id> [--description] [--due] [--name] [--text]` | Update any item |
+| `todo delete <id>` | Delete an item (cascades to references) |
+| `todo status <id> --set <status> [--reason]` | Change task status |
+| `todo dashboard` | Start the web dashboard |
+
+**Status tokens**: `[ ]` todo · `[~]` in progress · `[x]` done · `[B]` blocked
 
 ## Web Dashboard
 
-- **List view** — classic sidebar with tasks grouped by status, detail panel, and CRUD
-- **Kanban view** — 4 columns (Todo, En cours, Done, Bloqued) with drag & drop
-- Add task, actor, comment modals
-- Status changes, editing, and deletion
-- Task detail with actors and comments
+Start it with `todo dashboard`, then open the provided URL in your browser.
+
+- **List view** — tasks grouped by status with a detail panel, full CRUD
+- **Kanban view** — 4 columns (Todo, In Progress, Done, Blocked) with drag & drop
+- **Modals** — add/edit tasks, actors, and comments inline
+- **Search & filter** — filter by actor, tag, priority, and status
+- **Theme** — dark/light mode with system preference detection
 
 ## HTTP API
 
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/todo` | GET | Full JSON data |
-| `/api/add-task` | POST | Create task |
-| `/api/add-actor` | POST | Create actor |
-| `/api/add-comment` | POST | Create comment |
+| `/api/todo` | GET | Fetch full project data (JSON) |
+| `/api/add-task` | POST | Create a task |
+| `/api/add-actor` | POST | Create an actor |
+| `/api/add-comment` | POST | Create a comment |
 | `/api/update` | POST | Update any item |
 | `/api/delete` | POST | Delete any item |
 | `/api/status` | POST | Change task status |
 
 ## Build from Source
 
-```powershell
-cargo build
+Requires [Rust](https://rustup.rs/) 1.75+.
+
+```bash
+cargo build --release
 cargo test
 ```
 
-Requires Rust (install via [rustup](https://rustup.rs/)).
+The binary is placed at `target/release/todo.exe`.
 
-## Notes
+---
 
-- IDs are 4-char alphanumeric, auto-generated
-- Status tokens: `[ ]` todo, `[~]` en-cours, `[x]` done, `[B]` bloqued
-- `todo delete` cascades: removing an actor/comment strips it from all tasks
+## Architecture
+
+```
+todo (Rust CLI)
+  → TODO.md (flat-file storage)
+  → Rust HTTP server (TcpListener)
+  → dashboard/index.html (static SPA)
+```
+
+- IDs are 4-character alphanumeric, auto-generated
+- Deleting an actor or comment strips it from all tasks (cascading delete)
 - Dashboard auto-finds a free port starting at 8383
-- Deleting an actor also removes them from all task assignments
 
-Built by [Rayan Rav](https://rayan-rav.web.app/) · Open source under the [MIT License](LICENSE).
+---
+
+<p align="center">
+  Built by <a href="https://rayan-rav.web.app/">Rayan Rav</a> ·
+  Forked from <a href="https://github.com/RayanBO/kanban.git">kanban</a> ·
+  MIT License
+</p>

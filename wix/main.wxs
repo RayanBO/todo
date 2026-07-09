@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product
+        Id="*"
+        Name="todo"
+        Language="1033"
+        Version="$(var.Version)"
+        Manufacturer="Rayan Rav"
+        UpgradeCode="B8C4D0E2-F3A5-6789-01BC-DEF123456789">
+
+        <Package
+            InstallerVersion="200"
+            Compressed="yes"
+            InstallScope="perMachine"
+            Platform="x64"
+            Manufacturer="Rayan Rav"
+            Description="todo - TODO CLI" />
+
+        <MajorUpgrade
+            DowngradeErrorMessage="A newer version of todo is already installed."
+            Schedule="afterInstallValidate" />
+
+        <MediaTemplate EmbedCab="yes" />
+
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="todo">
+                    <Component Id="MainBinary" Guid="*" Win64="yes">
+                        <File
+                            Id="todo.exe"
+                            Name="todo.exe"
+                            Source="$(var.BinaryPath)"
+                            KeyPath="yes" />
+
+                        <Environment
+                            Id="PATH"
+                            Name="PATH"
+                            Value="[INSTALLDIR]"
+                            Permanent="no"
+                            Part="last"
+                            Action="set"
+                            System="yes" />
+                    </Component>
+                </Directory>
+            </Directory>
+        </Directory>
+
+        <Feature Id="ProductFeature" Title="todo" Level="1">
+            <ComponentRef Id="MainBinary" />
+        </Feature>
+
+        <Property Id="ARPHELPLINK" Value="https://github.com/rayanbo/todo" />
+        <Property Id="ARPURLINFOABOUT" Value="https://github.com/rayanbo/todo" />
+        <Property Id="ARPNOREPAIR" Value="1" />
+        <Property Id="ARPNOMODIFY" Value="1" />
+    </Product>
+</Wix>

@@ -50,7 +50,6 @@ fn handle_client(mut stream: TcpStream) {
     let method = parts[0];
     let path = parts[1];
 
-    // Read headers
     let mut content_length: usize = 0;
     for line in reader.by_ref().lines() {
         let l = line.unwrap_or_default();
@@ -163,7 +162,6 @@ fn api_pic_bytes(uri: &str) -> Vec<u8> {
 }
 
 fn base64_decode(s: &str) -> Vec<u8> {
-    // simple base64 decode using a lookup table
     let b64 = s.trim();
     let mut out = Vec::new();
     let mut buf: u32 = 0;
@@ -200,17 +198,13 @@ fn api_upload(raw: &[u8]) -> String {
     if data_url.is_empty() {
         return json_response(400, serde_json::json!({"error": "Missing data"}));
     }
-    // extract base64 part after comma
     let b64 = if let Some(pos) = data_url.find(',') { &data_url[pos + 1..] } else { data_url };
     let bytes = base64_decode(b64);
     if bytes.is_empty() {
         return json_response(400, serde_json::json!({"error": "Empty data"}));
     }
-    // ensure pics directory exists
     let _ = fs::create_dir_all("./dashboard/pics");
-    // generate unique filename
     let ext = name.rsplit('.').next().unwrap_or("jpg");
-    // prefix with timestamp to avoid collisions, but keep original name readable
     let ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_millis();
     let base = name.trim_end_matches(&format!(".{}", ext));
     let filename = format!("{}_{}.{}", ts, base, ext);

@@ -7,7 +7,7 @@
   - **Created**: 2026-07-10 06:00
   - **Tags**: ci, devops
 
-- [~] fdFd **-** Design API schema
+- [x] fdFd **-** Design API schema
   - **Actors**: wsZk,KCX2
   - **Priority**: high
   - **Created**: 2026-07-10 06:00

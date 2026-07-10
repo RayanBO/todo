@@ -410,7 +410,7 @@ pub fn upgrade(force: bool) -> Result<(), String> {
         }
     }
 
-    let asset = "todo-windows-x64.exe";
+    let asset = "todo-x64.exe";
     let dl_url = format!(
         "https://github.com/rayanbo/todo/releases/download/{}/{}",
         latest_tag, asset
@@ -442,17 +442,14 @@ pub fn upgrade(force: bool) -> Result<(), String> {
     let current_exe = std::env::current_exe()
         .map_err(|e| format!("Cannot locate current binary: {}", e))?;
 
-    // Remove old backup if it exists
     let _ = std::fs::remove_file(&bak_file);
 
-    // Rename current → .bak, then copy new → current
     std::fs::rename(&current_exe, &bak_file)
         .map_err(|e| format!("Backup failed: {}", e))?;
 
     std::fs::copy(&temp_file, &current_exe)
         .map_err(|e| format!("Install failed: {}", e))?;
 
-    // Cleanup temp download
     let _ = std::fs::remove_file(&temp_file);
 
     println!("  ✓ Upgraded from v{} to v{}", current_version, latest_version);

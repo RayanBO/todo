@@ -59,9 +59,37 @@ jobs:
         if: matrix.target != 'x86_64-pc-windows-msvc'
         run: cargo build --release --target ${{ matrix.target }}
 
+      - name: Extraire version
+        id: ver
+        shell: bash
+        run: echo "ver=$(sed -n 's/^version = \"\(.*\)\"/\1/p' Cargo.toml)" >> $GITHUB_OUTPUT
+
       - name: Renommer le binaire
         shell: bash
-        run: cp ${{ matrix.binary }} ${{ matrix.artifact }}
+        run: |
+          ver="${{ steps.ver.outputs.ver }}"
+          case "${{ matrix.artifact }}" in
+            todo-windows-x64.exe)
+              versioned="todo-x64-v${ver}.exe"
+              generic="todo-x64.exe"
+              ;;
+            todo-linux-x64)
+              versioned="todo-linux-x64-v${ver}"
+              generic="todo-linux-x64"
+              ;;
+            todo-macos-arm64)
+              versioned="todo-macos-arm64-v${ver}"
+              generic="todo-macos-arm64"
+              ;;
+            todo-macos-x64)
+              versioned="todo-macos-x64-v${ver}"
+              generic="todo-macos-x64"
+              ;;
+          esac
+          cp ${{ matrix.binary }} "$versioned"
+          cp ${{ matrix.binary }} "$generic"
+          echo "versioned=$versioned" >> $GITHUB_ENV
+          echo "generic=$generic" >> $GITHUB_ENV
 
       - name: Install WiX
         if: matrix.target == 'x86_64-pc-windows-msvc'
@@ -84,20 +112,25 @@ jobs:
           Write-Host "Linking msi..."
           & .\wix\light.exe -cultures:null -out "target\wix\todo-$ver.msi" target\wix\todo.wixobj
           if ($LASTEXITCODE -ne 0) { throw "light failed ($LASTEXITCODE)" }
-          Copy-Item "target\wix\todo-$ver.msi" todo-windows-x64.msi
+          Copy-Item "target\wix\todo-$ver.msi" "todo-x64-$ver.msi"
+          Copy-Item "target\wix\todo-$ver.msi" "todo-x64.msi"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.artifact }}
+          name: ${{ env.versioned }}
+          path: |
+            ${{ env.versioned }}
+            ${{ env.generic }}
 
       - name: Upload MSI
         if: matrix.target == 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
-          name: todo-windows-x64.msi
-          path: todo-windows-x64.msi
+          name: todo-x64-${{ steps.ver.outputs.ver }}.msi
+          path: |
+            todo-x64-${{ steps.ver.outputs.ver }}.msi
+            todo-x64.msi
 
   release:
     name: Créer la Release GitHub

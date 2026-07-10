@@ -26,6 +26,19 @@
 
 When you need a visual interface, `todo dashboard` spawns an embedded web server with a full-featured dashboard.
 
+## AI Agent Skill
+
+A structured [SKILL.md](skills/SKILL.md) is available to teach AI coding agents how to use `todo`:
+
+- All CLI commands with syntax and flags
+- Markdown data model (task, actor, comment fields)
+- HTTP API route table
+- Dashboard features overview
+
+Install via `npx skills add rayanbo/todo/skills` or copy [`skills/SKILL.md`](skills/SKILL.md) manually.
+
+---
+
 ## Quick Start
 
 ```bash

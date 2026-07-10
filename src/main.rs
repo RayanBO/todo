@@ -13,6 +13,7 @@ use models::Priority;
 
 #[derive(Parser)]
 #[command(name = "todo")]
+#[command(version)]
 #[command(about = "Manage project tasks in TODO.md")]
 struct Cli {
     #[command(subcommand)]

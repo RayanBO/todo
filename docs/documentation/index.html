@@ -30,6 +30,7 @@
     <div class="nav-links">
       <a href="../">Home</a>
       <a href="./" class="nav-active">Docs</a>
+      <a href="https://github.com/RayanBO/todo/blob/main/skills/SKILL.md" target="_blank" rel="noopener">Skill</a>
       <a href="https://github.com/RayanBO/todo" target="_blank" rel="noopener" class="nav-cta">GitHub</a>
       <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
         <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -46,9 +47,18 @@
       <li><a href="#creating-items">Creating Items</a></li>
       <li><a href="#reading-items">Reading Items</a></li>
       <li><a href="#modifying-items">Modifying Items</a></li>
+      <li><a href="#install">install</a></li>
       <li><a href="#status-deletion">Status &amp; Deletion</a></li>
+      <li><a href="#tags">tags</a></li>
+      <li><a href="#search">search</a></li>
+      <li><a href="#completion">completion</a></li>
       <li><a href="#dashboard">Dashboard</a></li>
       <li><a href="#file-format">File Format</a></li>
+      <li style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><a href="#skill">AI Agent Skill</a></li>
+    </ul>
+    <ul class="docs-minimap" style="margin-top:24px">
+      <li style="font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.6px;padding:4px 0;list-style:none">Reference</li>
+      <li><a href="https://github.com/RayanBO/todo/blob/main/CHANGELOG.md">Changelog</a></li>
     </ul>
   </aside>
 
@@ -162,6 +172,16 @@
       </div>
     </div>
 
+    <div class="cmd-group" id="install">
+      <h2>Utilities</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">install</div>
+        <div class="cmd-syntax">todo install</div>
+        <div class="cmd-desc">Copy the binary to the user PATH. Windows only. Runs automatically on first launch if not already installed.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo install</div>
+      </div>
+    </div>
+
     <div class="cmd-group" id="status-deletion">
       <h2>Status &amp; Deletion</h2>
       <div class="cmd-block">
@@ -193,6 +213,45 @@
         <div class="cmd-desc" style="margin-top:10px">The dashboard features two view modes:<br>
           <strong>List view</strong> — tasks grouped by status with inline detail, comments, and CRUD modals.<br>
           <strong>Kanban view</strong> — drag-and-drop columns by status with quick-add buttons.</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="tags">
+      <h2>Tags</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">tags</div>
+        <div class="cmd-syntax">todo tags</div>
+        <div class="cmd-desc">List all tags used across tasks, with usage counts. Useful for discovering existing labels before assigning new ones.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo tags</div>
+        <div class="cmd-example"><span class="comment"># &#8594; backend  3</span></div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="search">
+      <h2>Search</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">search</div>
+        <div class="cmd-syntax">todo search &lt;query&gt;</div>
+        <div class="cmd-desc">Search tasks by text query. Matches against task descriptions and tags.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo search "login"</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="completion">
+      <h2>Shell Completion</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">completion</div>
+        <div class="cmd-syntax">todo completion {bash|zsh|powershell|fish|elvish}</div>
+        <div class="cmd-desc">Generate shell completion scripts for tab-completion of all commands and flags. Pipe the output to your shell's completions directory.</div>
+        <table class="cmd-flags">
+          <tr><th>Shell</th><th>Install command</th></tr>
+          <tr><td>bash</td><td><span class="mono">todo completion bash &gt; /etc/bash_completion.d/todo</span></td></tr>
+          <tr><td>zsh</td><td><span class="mono">todo completion zsh &gt; "${fpath[1]}/_todo"</span></td></tr>
+          <tr><td>powershell</td><td><span class="mono">todo completion powershell &gt; "$PROFILE"</span></td></tr>
+          <tr><td>fish</td><td><span class="mono">todo completion fish &gt; ~/.config/fish/completions/todo.fish</span></td></tr>
+        </table>
+        <div class="cmd-example"><span class="comment"># Source directly without installing</span></div>
+        <div class="cmd-example"><span class="prompt">$</span> . &lt;(todo completion bash)</div>
       </div>
     </div>
 
@@ -229,6 +288,17 @@
       </div>
     </div>
 
+    <div class="cmd-group" id="skill">
+      <h2>AI Agent Skill</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">SKILL.md</div>
+        <div class="cmd-desc">A structured <a href="https://github.com/RayanBO/todo/blob/main/skills/SKILL.md">SKILL.md</a> is available to teach AI coding agents how to use <span class="mono">todo</span>. Includes all CLI commands, the Markdown data model, and the HTTP API route table.</div>
+        <div class="cmd-syntax">npx skills add rayanbo/todo/skills</div>
+        <div class="cmd-example"><span class="comment"># Or copy the file manually</span></div>
+        <div class="cmd-example"><span class="prompt">$</span> curl -LO https://raw.githubusercontent.com/RayanBO/todo/main/skills/SKILL.md</div>
+      </div>
+    </div>
+
     <div class="cmd-group-end"></div>
   </div>
 </main>
@@ -244,8 +314,10 @@
     </div>
     <div class="footer-links">
       <a href="../">Home</a>
+      <a href="../#features">Features</a>
+      <a href="https://github.com/RayanBO/todo/blob/main/skills/SKILL.md" target="_blank" rel="noopener">Skill</a>
+      <a href="https://github.com/RayanBO/todo/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
       <a href="https://github.com/RayanBO/todo" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/RayanBO/todo/releases" target="_blank" rel="noopener">Releases</a>
     </div>
   </div>
   <div class="footer-bottom">

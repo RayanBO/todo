@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.1] — 2026-07-09
+
+### Added
+- `todo completion {bash|zsh|powershell|fish|elvish}` — shell completion scripts
+- `todo tags` — list all tags with usage counts
+- `todo search <query>` — search tasks by text
+- `todo install` — copy binary to PATH (Windows)
+- `todo --version` / `-V` — show version
+- `skills/SKILL.md` — AI agent skill for coding assistants
+- Landing page: Changelog link in nav and footer
+
+### Changed
+- Binary renamed from `todo-cli` to `todo` via `[[bin]]` in Cargo.toml
+- Landing page: MSI installer download for Windows
+- Landing page: fixed platform card asset matching (bug: all cards showed linux asset)
+- CI: WiX MSI build step in release workflow
+
 ## [0.1.0] — 2026-07-07
 
 ### Added

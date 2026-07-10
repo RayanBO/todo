@@ -165,6 +165,7 @@ nav {
   background: none;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
+  cursor: pointer;
   color: var(--text-tertiary);
   transition: color 0.15s, border-color 0.15s;
   margin-left: 8px;
@@ -860,7 +861,8 @@ footer {
 }
 
 @media (max-width: 640px) {
-  .nav-links a:not(.nav-cta):not(.nav-gh) {
+  .nav-links button:not(.theme-toggle),
+  .nav-links a:not(.nav-cta) {
     display: none;
   }
   .nav-link-mobile-hide {

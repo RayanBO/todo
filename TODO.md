@@ -110,7 +110,7 @@
 
 - KCX2
   - **Pseudo**: Bob
-  - **Pic**: ./dashboard/pics/1783616396336_rayan.png
+  - **Pic**: ./dashboard/pics/1783654945353_pdp.jpg
   - **Type**: Human
 
 # Comments

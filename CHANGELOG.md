@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.1.3] — 2026-07-10
+
+### Added
+- `todo upgrade` command — check and install latest version from GitHub
+- Version in release artifact filenames (e.g. `todo-x64-v0.1.3.exe`)
+
+### Changed
+- Release workflow uploads both versioned and generic binaries
+- Landing page version badge pulls latest tag from GitHub API
+- Cleaned up code comments throughout
+
 ## [0.1.2] — 2026-07-10
 
 ### Changed

@@ -39,6 +39,10 @@ Install via `npx skills add rayanbo/todo/skills` or copy [`skills/SKILL.md`](ski
 
 ---
 
+## Demo
+
+![todo CLI demo](demo/demo.gif)
+
 ## Quick Start
 
 ```bash
@@ -68,8 +72,8 @@ All data lives in a single `TODO.md` file at the project root.
 
 # Actors
 
-- u0v1 **Alice**
-    - **Pseudo**: Alice
+- u0v1 **Teddy**
+    - **Pseudo**: Teddy-Dev
     - **Pic**: https://...
     - **Type**: Human
 

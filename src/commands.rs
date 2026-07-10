@@ -373,6 +373,94 @@ pub fn list_tags() -> Result<(), String> {
     Ok(())
 }
 
+pub fn upgrade(force: bool) -> Result<(), String> {
+    let current_version = env!("CARGO_PKG_VERSION");
+
+    let api_script = "(Invoke-RestMethod 'https://api.github.com/repos/rayanbo/todo/releases/latest').tag_name";
+    let output = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", api_script])
+        .output()
+        .map_err(|e| format!("Failed to check latest version: {}", e))?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Failed to fetch latest release:\n{}", stderr));
+    }
+
+    let latest_tag = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    let latest_version = latest_tag.trim_start_matches('v');
+
+    if current_version >= latest_version {
+        println!("  ✓ Already up-to-date (v{})", current_version);
+        return Ok(());
+    }
+
+    println!("  Current: v{}", current_version);
+    println!("  Latest:  v{}", latest_version);
+
+    if !force {
+        print!("  Upgrade? (Y/n): ");
+        stdout().flush().map_err(|e| format!("Flush error: {}", e))?;
+        let mut input = String::new();
+        stdin().read_line(&mut input).map_err(|e| format!("Read error: {}", e))?;
+        let input = input.trim().to_lowercase();
+        if !input.is_empty() && input != "y" && input != "yes" {
+            println!("  Aborted.");
+            return Ok(());
+        }
+    }
+
+    let asset = "todo-windows-x64.exe";
+    let dl_url = format!(
+        "https://github.com/rayanbo/todo/releases/download/{}/{}",
+        latest_tag, asset
+    );
+
+    let temp_dir = std::env::temp_dir();
+    let temp_file = temp_dir.join("todo-upgrade-tmp.exe");
+    let bak_file = temp_dir.join("todo-upgrade-bak.exe");
+
+    let dl_script = format!(
+        "Invoke-WebRequest -Uri '{}' -OutFile '{}'",
+        dl_url, temp_file.to_string_lossy().replace('\'', "''")
+    );
+
+    print!("  Downloading v{}...", latest_version);
+    stdout().flush().ok();
+    let dl = std::process::Command::new("powershell")
+        .args(["-NoProfile", "-Command", &dl_script])
+        .output()
+        .map_err(|e| format!("Download failed: {}", e))?;
+
+    if !dl.status.success() {
+        let stderr = String::from_utf8_lossy(&dl.stderr);
+        let _ = std::fs::remove_file(&temp_file);
+        return Err(format!("Download failed:\n{}", stderr));
+    }
+    println!(" done");
+
+    let current_exe = std::env::current_exe()
+        .map_err(|e| format!("Cannot locate current binary: {}", e))?;
+
+    // Remove old backup if it exists
+    let _ = std::fs::remove_file(&bak_file);
+
+    // Rename current → .bak, then copy new → current
+    std::fs::rename(&current_exe, &bak_file)
+        .map_err(|e| format!("Backup failed: {}", e))?;
+
+    std::fs::copy(&temp_file, &current_exe)
+        .map_err(|e| format!("Install failed: {}", e))?;
+
+    // Cleanup temp download
+    let _ = std::fs::remove_file(&temp_file);
+
+    println!("  ✓ Upgraded from v{} to v{}", current_version, latest_version);
+    println!("  ⚠ Restart your terminal to use the new version");
+
+    Ok(())
+}
+
 pub fn is_installed() -> bool {
     let current = std::env::current_exe().ok();
     let installed = Some(install_dir().join("todo.exe"));

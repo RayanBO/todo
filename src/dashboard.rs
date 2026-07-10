@@ -84,6 +84,7 @@ fn handle_client(mut stream: TcpStream) {
         }
         let response = match (method, path) {
             ("GET", "/") => serve_html(),
+            ("GET", "/favicon.svg") => serve_favicon(),
             ("GET", "/api/todo") => api_get_todo(),
             ("POST", "/api/add-task") => api_add_task(&body),
             ("POST", "/api/add-actor") => api_add_actor(&body),
@@ -239,6 +240,25 @@ fn html_response(status: u16, body: &str) -> String {
         body.len(),
         body
     )
+}
+
+fn serve_favicon() -> String {
+    let path = Path::new("./dashboard/favicon.svg");
+    if !path.exists() {
+        return json_response(404, serde_json::json!({"error": "favicon.svg not found"}));
+    }
+    match fs::read(path) {
+        Ok(data) => {
+            let header = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: image/svg+xml\r\nContent-Length: {}\r\nCache-Control: public, max-age=3600\r\n\r\n",
+                data.len()
+            );
+            let mut resp: Vec<u8> = header.into_bytes();
+            resp.extend_from_slice(&data);
+            String::from_utf8_lossy(&resp).to_string()
+        }
+        Err(e) => json_response(500, serde_json::json!({"error": format!("Read error: {}", e)})),
+    }
 }
 
 fn serve_html() -> String {

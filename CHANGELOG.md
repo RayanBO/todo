@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.2] — 2026-07-10
+
+### Changed
+- Dashboard UI overhaul: Inter/JetBrains Mono fonts, refined palette, segmented tabs, card hover lift, modal blur
+- Logo replaced with checkmark SVG (match favicon)
+- Focus rings and shadow system improvements
+
+### Fixed
+- Favicon now served correctly by built-in HTTP server (`GET /favicon.svg` route)
+
 ## [0.1.1] — 2026-07-09
 
 ### Added

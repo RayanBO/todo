@@ -141,6 +141,12 @@ enum Commands {
         #[arg(long)]
         reason: Option<String>,
     },
+    /// Check for updates and upgrade to latest version
+    Upgrade {
+        /// Skip confirmation prompt
+        #[arg(long)]
+        yes: bool,
+    },
 }
 
 fn main() {
@@ -203,6 +209,7 @@ fn main() {
         Commands::Status { id, set, reason } => {
             commands::set_status(id, set, reason.as_deref())
         }
+        Commands::Upgrade { yes } => commands::upgrade(*yes),
     };
 
     if let Err(e) = result {

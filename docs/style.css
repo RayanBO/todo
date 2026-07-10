@@ -156,6 +156,25 @@ nav {
   background: var(--accent-dim) !important;
 }
 
+.nav-gh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  transition: color 0.15s, border-color 0.15s;
+  margin-left: 8px;
+}
+
+.nav-gh:hover {
+  color: var(--text);
+  border-color: var(--border-light);
+}
+
 .theme-toggle {
   display: flex;
   align-items: center;
@@ -841,7 +860,10 @@ footer {
 }
 
 @media (max-width: 640px) {
-  .nav-links a:not(.nav-cta) {
+  .nav-links a:not(.nav-cta):not(.nav-gh) {
+    display: none;
+  }
+  .nav-link-mobile-hide {
     display: none;
   }
 

@@ -438,12 +438,27 @@
             }
             .sd.e {
                 background: var(--inprogress);
+                animation: spin 1.2s linear infinite;
             }
             .sd.d {
                 background: var(--done);
             }
             .sd.b {
                 background: var(--blocked);
+            }
+
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+            .spin-ring {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 2.5px solid var(--border2);
+                border-top-color: var(--inprogress);
+                animation: spin 0.7s linear infinite;
+                flex-shrink: 0;
+                display: inline-block;
             }
 
             .col-head {
@@ -1997,7 +2012,9 @@
                                 '">';
                             h += '<div class="task-row">';
                             h +=
-                                '<input type="checkbox" onclick="event.stopPropagation()">';
+                                t.status === "InProgress"
+                                    ? '<span class="spin-ring"></span>'
+                                    : '<input type="checkbox" onclick="event.stopPropagation()">';
                             h +=
                                 '<div class="t-name' +
                                 (t.description && t.description.includes('\n') ? ' t-name-multi' : '') +
@@ -2073,7 +2090,9 @@
                             t.id +
                             '" onclick="kbc(\'' +
                             t.id +
-                            '\')"><span class="kbid">#' +
+                            '\')">' +
+                            (t.status === "InProgress" ? '<span class="spin-ring" style="width:14px;height:14px;border-width:2px;margin-right:4px;vertical-align:middle"></span>' : '') +
+                            '<span class="kbid">#' +
                             t.id +
                             "</span>";
                         h +=

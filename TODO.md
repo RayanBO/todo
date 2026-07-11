@@ -13,7 +13,7 @@
   - **Created**: 2026-07-10 06:00
   - **Tags**: api, backend
 
-- [~] gtqg **-** Build login page
+- [x] gtqg **-** Build login page
   - **Due**: 2026-07-15 17:00
   - **Actors**: wsZk
   - **Comments**: 9Q5H,CHRO

@@ -65,7 +65,7 @@
   - **Created**: 2026-07-10 06:01
   - **Tags**: backend, notification
 
-- [ ] LWn8 **-** User avatar upload
+- [~] LWn8 **-** User avatar upload
   - **Priority**: low
   - **Created**: 2026-07-10 06:01
   - **Tags**: frontend, upload

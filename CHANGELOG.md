@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.5] — 2026-07-10
+
+### Added
+- Infinite spinning progress indicator for "in progress" tasks in list view
+- Status picker popup on checkbox click to quickly change task status
+- Nav GitHub icon button in landing page and documentation header
+
+## [0.1.4] — 2026-07-10
+
+### Added
+- `demo/demo.gif` and VHS tape for CLI demo
+- Full route integration test with setup/teardown
+
 ## [0.1.3] — 2026-07-10
 
 ### Added

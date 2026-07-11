@@ -504,6 +504,47 @@
                 cursor: pointer;
                 margin-top: 1px;
             }
+
+            .spin-ring {
+                cursor: pointer;
+            }
+
+            .stpick {
+                position: fixed;
+                z-index: 2000;
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                box-shadow: var(--shadow-lg);
+                padding: 4px;
+                min-width: 130px;
+            }
+            .stpick-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 6px 10px;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 12px;
+                font-weight: 500;
+                color: var(--text2);
+                transition: 0.1s;
+            }
+            .stpick-item:hover {
+                background: var(--primary-tint);
+                color: var(--text);
+            }
+            .stpick-item.active {
+                color: var(--text);
+                font-weight: 600;
+            }
+            .stpick-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
             .t-name {
                 font-size: 13px;
                 font-weight: 600;
@@ -1891,6 +1932,44 @@
                 renderHeaderAvatars();
             }
 
+            // ── Status Picker ──
+            function showStPick(e, id, cur) {
+                e.stopPropagation();
+                const old = document.querySelector(".stpick");
+                if (old) old.remove();
+                const items = [
+                    { st: "Todo", label: "À faire", cls: "t", val: "todo" },
+                    { st: "InProgress", label: "En cours", cls: "e", val: "en-cours" },
+                    { st: "Done", label: "Terminé", cls: "d", val: "done" },
+                    { st: "Blocked", label: "Bloqué", cls: "b", val: "bloqued" },
+                ];
+                const pick = document.createElement("div");
+                pick.className = "stpick";
+                items.forEach((i) => {
+                    const row = document.createElement("div");
+                    row.className = "stpick-item" + (i.st === cur ? " active" : "");
+                    row.innerHTML = '<span class="stpick-dot sd ' + i.cls + '"></span>' + i.label;
+                    if (i.st !== cur) {
+                        row.onclick = async () => {
+                            const r = await api("/api/status", { id, set: i.val });
+                            if (r.ok) { pick.remove(); await ld(); }
+                            else { tt(r.error || "Erreur", "e"); pick.remove(); }
+                        };
+                    } else {
+                        row.onclick = () => pick.remove();
+                    }
+                    pick.appendChild(row);
+                });
+                document.body.appendChild(pick);
+                const r = pick.getBoundingClientRect();
+                const x = Math.min(e.clientX, window.innerWidth - r.width - 8);
+                const y = e.clientY + 20;
+                pick.style.left = x + "px";
+                pick.style.top = y + "px";
+                const close = (ev) => { if (!pick.contains(ev.target)) { pick.remove(); document.removeEventListener("mousedown", close); } };
+                setTimeout(() => document.addEventListener("mousedown", close), 0);
+            }
+
             // ── List View ──
             function rL() {
                 const e = document.getElementById("lv");
@@ -2013,8 +2092,8 @@
                             h += '<div class="task-row">';
                             h +=
                                 t.status === "InProgress"
-                                    ? '<span class="spin-ring"></span>'
-                                    : '<input type="checkbox" onclick="event.stopPropagation()">';
+                                    ? '<span class="spin-ring" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')"></span>'
+                                    : '<input type="checkbox" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')">';
                             h +=
                                 '<div class="t-name' +
                                 (t.description && t.description.includes('\n') ? ' t-name-multi' : '') +

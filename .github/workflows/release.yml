@@ -112,7 +112,7 @@ jobs:
           Write-Host "Linking msi..."
           & .\wix\light.exe -cultures:null -out "target\wix\todo-$ver.msi" target\wix\todo.wixobj
           if ($LASTEXITCODE -ne 0) { throw "light failed ($LASTEXITCODE)" }
-          Copy-Item "target\wix\todo-$ver.msi" "todo-x64-$ver.msi"
+          Copy-Item "target\wix\todo-$ver.msi" "todo-x64-v${ver}.msi"
           Copy-Item "target\wix\todo-$ver.msi" "todo-x64.msi"
 
       - name: Upload artifact
@@ -127,9 +127,9 @@ jobs:
         if: matrix.target == 'x86_64-pc-windows-msvc'
         uses: actions/upload-artifact@v4
         with:
-          name: todo-x64-${{ steps.ver.outputs.ver }}.msi
+          name: todo-x64-v${{ steps.ver.outputs.ver }}.msi
           path: |
-            todo-x64-${{ steps.ver.outputs.ver }}.msi
+            todo-x64-v${{ steps.ver.outputs.ver }}.msi
             todo-x64.msi
 
   release:

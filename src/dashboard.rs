@@ -8,6 +8,8 @@ use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 
 const TODO_FILE: &str = "./TODO.md";
+const DASHBOARD_HTML: &str = include_str!("../dashboard/index.html");
+const DASHBOARD_FAVICON: &[u8] = include_bytes!("../dashboard/favicon.svg");
 
 pub fn serve(start_port: u16) -> Result<(), String> {
     let port = find_port(start_port)?;
@@ -237,33 +239,17 @@ fn html_response(status: u16, body: &str) -> String {
 }
 
 fn serve_favicon() -> String {
-    let path = Path::new("./dashboard/favicon.svg");
-    if !path.exists() {
-        return json_response(404, serde_json::json!({"error": "favicon.svg not found"}));
-    }
-    match fs::read(path) {
-        Ok(data) => {
-            let header = format!(
-                "HTTP/1.1 200 OK\r\nContent-Type: image/svg+xml\r\nContent-Length: {}\r\nCache-Control: public, max-age=3600\r\n\r\n",
-                data.len()
-            );
-            let mut resp: Vec<u8> = header.into_bytes();
-            resp.extend_from_slice(&data);
-            String::from_utf8_lossy(&resp).to_string()
-        }
-        Err(e) => json_response(500, serde_json::json!({"error": format!("Read error: {}", e)})),
-    }
+    let header = format!(
+        "HTTP/1.1 200 OK\r\nContent-Type: image/svg+xml\r\nContent-Length: {}\r\nCache-Control: public, max-age=3600\r\n\r\n",
+        DASHBOARD_FAVICON.len()
+    );
+    let mut resp: Vec<u8> = header.into_bytes();
+    resp.extend_from_slice(DASHBOARD_FAVICON);
+    String::from_utf8_lossy(&resp).to_string()
 }
 
 fn serve_html() -> String {
-    let path = Path::new("./dashboard/index.html");
-    if !path.exists() {
-        return html_response(404, "<h1>dashboard/index.html not found</h1>");
-    }
-    match fs::read_to_string(path) {
-        Ok(content) => html_response(200, &content),
-        Err(e) => html_response(500, &format!("<h1>Read error: {}</h1>", e)),
-    }
+    html_response(200, DASHBOARD_HTML)
 }
 
 fn read_todo_json() -> Result<String, String> {

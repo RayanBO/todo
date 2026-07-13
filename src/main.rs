@@ -32,6 +32,9 @@ enum Commands {
         /// Use YAML format instead of markdown
         #[arg(long)]
         yaml: bool,
+        /// Use Markdown format (explicit)
+        #[arg(long)]
+        md: bool,
         /// Create both TODO.md and TODO.yaml
         #[arg(long)]
         both: bool,
@@ -190,7 +193,7 @@ fn main() {
     let cli = Cli::parse();
 
     let result = match &cli.command {
-        Commands::Init { force, yaml, both } => commands::init(*force, *yaml, *both),
+        Commands::Init { force, yaml, md, both } => commands::init(*force, *yaml, *md, *both),
         Commands::Add { task, actors, actor, pic, comment, task_id, tag, priority, due, position } => {
             if let Some(desc) = task {
                 let actor_ids: Vec<String> = actors.as_ref()

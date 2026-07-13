@@ -84,25 +84,38 @@ fn set_project(todo: &mut TodoFile) {
         .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
 }
 
-pub fn init(force: bool, yaml: bool, both: bool) -> Result<(), String> {
-    let (use_yaml, use_both) = if yaml {
-        (true, false)
-    } else if both {
+pub fn init(force: bool, yaml: bool, md: bool, both: bool) -> Result<(), String> {
+    let (use_yaml, use_both) = if both {
         (false, true)
+    } else if yaml {
+        (true, false)
+    } else if md {
+        (false, false)
     } else if !Config::any_exists() {
         prompt_format()?
     } else {
-        // files exist, no flag given — guide the user
+        // files exist, no flag given — interactive prompts
+        print!("Checking...");
+        stdout().flush().map_err(|e| format!("Flush error: {}", e))?;
         let md = Config::md_exists();
         let yml = Config::yaml_exists();
         if md && yml {
-            return Err("TODO.md and TODO.yaml already exist. Use --force to overwrite.".to_string());
+            println!("\rError: TODO.md & TODO.yaml already exist.");
+            println!("  Use `todo init --md --force` to overwrite TODO.md");
+            println!("  Use `todo init --yaml --force` to overwrite TODO.yaml");
+            return Ok(());
         }
-        if md {
-            return Err("TODO.md already exists. Use --yaml to create TODO.yaml, or --force to overwrite.".to_string());
+        let target = if md { "yaml" } else { "md" };
+        print!("\rInitialize TODO.{}? (Y/n): ", target);
+        stdout().flush().map_err(|e| format!("Flush error: {}", e))?;
+        let mut input = String::new();
+        stdin().read_line(&mut input).map_err(|e| format!("Read error: {}", e))?;
+        let input = input.trim().to_lowercase();
+        if input == "n" || input == "no" {
+            println!("  Aborted.");
+            return Ok(());
         }
-        // yaml exists but not md
-        return Err("TODO.yaml already exists. Use `todo init` (without --yaml) to create TODO.md, or --force to overwrite.".to_string());
+        (target == "yaml", false)
     };
 
     let init_md = !use_yaml || use_both;

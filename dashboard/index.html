@@ -184,6 +184,12 @@
                 margin-right: 8px;
                 outline: none;
             }
+            .editor-label {
+                color: var(--text2);
+                font-size: 11px;
+                font-weight: 600;
+                margin-right: 4px;
+            }
             .editor-pick:hover {
                 border-color: var(--primary);
             }
@@ -1258,6 +1264,7 @@
                     <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="format-switch" id="formatSwitch"></div>
+                <span class="editor-label">Editor:</span>
                 <select class="editor-pick" id="editorPick" onchange="setEditor(this.value)" title="Ouvrir le fichier dans…">
                     <option value="vscode">VSCode</option>
                     <option value="zed">Zed</option>
@@ -1695,7 +1702,7 @@
                 const path = m[1], line = m[2], col = m[3];
                 const editors = {
                     vscode: "vscode://file/" + path + ":" + line + ":" + col,
-                    zed: (/^[A-Za-z]:/.test(path) ? "file:///" + path + "#L" + line + ":" + col : "zed://file/") + path + ":" + line + ":" + col,
+                    zed: /^[A-Za-z]:/.test(path) ? "file:///" + path + "#L" + line + ":" + col : "zed://file/" + path + ":" + line + ":" + col,
                 };
                 const pref = localStorage.getItem("todo-editor") || "vscode";
                 return editors[pref] || editors.vscode;

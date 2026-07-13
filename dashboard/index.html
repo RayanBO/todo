@@ -172,6 +172,21 @@
                 border-color: var(--primary);
                 color: #fff;
             }
+            .editor-pick {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                color: var(--text2);
+                padding: 4px 6px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-right: 8px;
+                outline: none;
+            }
+            .editor-pick:hover {
+                border-color: var(--primary);
+            }
             .avatars {
                 display: flex;
                 align-items: center;
@@ -1243,6 +1258,14 @@
                     <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="format-switch" id="formatSwitch"></div>
+                <select class="editor-pick" id="editorPick" onchange="setEditor(this.value)" title="Ouvrir dans">
+                    <option value="vscode">VSCode</option>
+                    <option value="cursor">Cursor</option>
+                    <option value="windsurf">Windsurf</option>
+                    <option value="zed">Zed</option>
+                    <option value="webstorm">WebStorm</option>
+                    <option value="file">Explorer</option>
+                </select>
                 <div class="avatars" id="hdr-avatars"></div>
                 <button
                     class="av-add"
@@ -1670,6 +1693,29 @@
                 d.textContent = s;
                 return d.innerHTML;
             }
+            function editorUrl(pos) {
+                const m = pos.match(/^file:\/\/\/(.*?)#L(\d+):(\d+)$/);
+                if (!m) return pos;
+                const path = m[1], line = m[2], col = m[3];
+                const editors = {
+                    vscode: "vscode://file/" + path + ":" + line + ":" + col,
+                    cursor: "cursor://file/" + path + ":" + line + ":" + col,
+                    windsurf: "windsurf://file/" + path + ":" + line + ":" + col,
+                    zed: "zed:///" + path + "?line=" + line + "&column=" + col,
+                    webstorm: "webstorm://open?file=" + path + "&line=" + line + "&column=" + col,
+                    file: "file:///" + path
+                };
+                const pref = localStorage.getItem("todo-editor") || "vscode";
+                return editors[pref] || editors.vscode;
+            }
+            function editorName() {
+                const n = { vscode:"VSCode", cursor:"Cursor", windsurf:"Windsurf", zed:"Zed", webstorm:"WebStorm", file:"Explorer" };
+                return n[localStorage.getItem("todo-editor") || "vscode"] || "VSCode";
+            }
+            function setEditor(val) {
+                localStorage.setItem("todo-editor", val);
+                rL(); rK();
+            }
             function imgSrc(s) {
                 if (!s) return "";
                 if (s.startsWith("http://") || s.startsWith("https://") || s.startsWith("data:")) return s;
@@ -1976,7 +2022,7 @@
                         (prio === "high" ? "var(--prio-h-t)" : prio === "medium" ? "var(--prio-m-t)" : "var(--prio-l-t)") +
                         '">' + esc(t.priority) + "</span></div>";
                 if (t.position)
-                    h += '<div class="td-row"><span class="td-label">Position</span><a href="' + esc(t.position) + '" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px;word-break:break-all">' + esc(t.position) + "</a></div>";
+                    h += '<div class="td-row"><span class="td-label">Position</span><a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '" style="color:var(--primary);font-size:12px;word-break:break-all">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
                 const tags = t.tags || [];
                 if (tags.length) {
                     h += '<div class="td-row"><span class="td-label">Tags</span>';
@@ -2212,7 +2258,7 @@
                             h += '<div class="t-est">' + estHTML + "</div>";
                             h += typeHTML;
                             let posHTML = t.position
-                                ? '<div class="t-pos"><a href="' + esc(t.position) + '" target="_blank" rel="noopener">' + esc(t.position.split('/').pop() || t.position) + "</a></div>"
+                                ? '<div class="t-pos"><a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '">' + esc(t.position.split('/').pop() || t.position) + "</a></div>"
                                 : '<div class="t-pos"><span class="prio-none">—</span></div>';
                             h += posHTML;
                             h += peopleHTML;
@@ -2303,7 +2349,7 @@
                         h += "</div>";
                         if (t.position)
                             h +=
-                                '<div class="kbdue" style="font-size:10px">&#128279; <a href="' + esc(t.position) + '" target="_blank" rel="noopener" style="color:var(--text3);text-decoration:none">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
+                                '<div class="kbdue" style="font-size:10px">&#128279; <a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '" style="color:var(--text3);text-decoration:none">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
                         if (t.due)
                             h +=
                                 '<div class="kbdue">&#9200; ' +
@@ -2710,6 +2756,7 @@
             });
 
             ld();
+            document.getElementById("editorPick").value = localStorage.getItem("todo-editor") || "vscode";
         </script>
     </body>
 </html>

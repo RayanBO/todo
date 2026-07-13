@@ -1927,6 +1927,9 @@
                     return;
                 }
                 D = r;
+                if (r.project) {
+                    document.title = "Todo - " + r.project;
+                }
                 rL();
                 rK();
                 renderHeaderAvatars();

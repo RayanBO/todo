@@ -38,7 +38,10 @@ fn prompt_overwrite() -> Result<bool, String> {
 
 pub fn init(force: bool) -> Result<(), String> {
     if !Path::new(TODO_FILE).exists() {
-        let todo = TodoFile::empty();
+        let mut todo = TodoFile::empty();
+        todo.project = std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
         write_todo(&todo)?;
         println!("Created TODO.md");
         return Ok(());
@@ -48,7 +51,10 @@ pub fn init(force: bool) -> Result<(), String> {
 
     if is_valid_format(&content) {
         if force {
-            let todo = TodoFile::empty();
+            let mut todo = TodoFile::empty();
+            todo.project = std::env::current_dir()
+                .ok()
+                .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
             write_todo(&todo)?;
             println!("Overwritten TODO.md");
             return Ok(());
@@ -57,7 +63,10 @@ pub fn init(force: bool) -> Result<(), String> {
     }
 
     if force || prompt_overwrite()? {
-        let todo = TodoFile::empty();
+        let mut todo = TodoFile::empty();
+        todo.project = std::env::current_dir()
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
         write_todo(&todo)?;
         println!("Overwritten TODO.md");
     } else {

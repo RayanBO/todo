@@ -1068,3 +1068,14 @@ footer {
     display: none;
   }
 }
+
+.agent-install {
+  padding: 80px 24px;
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.agent-install .install-box {
+  margin-top: 32px;
+}

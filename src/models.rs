@@ -165,6 +165,8 @@ pub struct TodoFile {
     pub tasks: Vec<Task>,
     pub actors: Vec<Actor>,
     pub comments: Vec<Comment>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub project: Option<String>,
 }
 
 impl TodoFile {
@@ -173,6 +175,7 @@ impl TodoFile {
             tasks: Vec::new(),
             actors: Vec::new(),
             comments: Vec::new(),
+            project: None,
         }
     }
 }

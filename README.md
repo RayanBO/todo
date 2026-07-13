@@ -15,7 +15,9 @@
   <a href="#cli-commands">CLI</a> •
   <a href="#web-dashboard">Dashboard</a> •
   <a href="#http-api">API</a> •
-  <a href="#build-from-source">Build</a>
+  <a href="#build-from-source">Build</a> •
+  <a href="#ai-agent-skill">Agent Skill</a> •
+  <a href="https://rayanbo.github.io/todo/">Site</a>
 </p>
 
 ---
@@ -28,14 +30,13 @@ When you need a visual interface, `todo dashboard` spawns an embedded web server
 
 ## AI Agent Skill
 
-A structured [SKILL.md](skills/SKILL.md) is available to teach AI coding agents how to use `todo`:
+Install the `todo` skill into your AI coding agent (opencode, Cline, etc.) with one command:
 
-- All CLI commands with syntax and flags
-- Markdown data model (task, actor, comment fields)
-- HTTP API route table
-- Dashboard features overview
+```sh
+npx skills add rayanbo/todo/skills
+```
 
-Install via `npx skills add rayanbo/todo/skills` or copy [`skills/SKILL.md`](skills/SKILL.md) manually.
+This teaches the agent all CLI commands, the data model, the HTTP API, and dashboard features. Also available as [`skills/SKILL.md`](skills/SKILL.md).
 
 ---
 

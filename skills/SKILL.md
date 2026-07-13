@@ -8,6 +8,46 @@ description: >
 
 # todo — TODO CLI Agent Skill
 
+## Links
+
+- **Source**: <https://github.com/RayanBO/todo>
+- **Official site**: <https://rayanbo.github.io/todo/>
+- **Documentation**: <https://rayanbo.github.io/todo/documentation/>
+- **Creator**: <https://github.com/RayanBO>
+
+## Install
+
+### Windows (MSI)
+```sh
+# Download and run the installer
+curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-x64.msi
+todo-x64.msi
+```
+
+### Windows (exe)
+```sh
+curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-x64.exe
+```
+
+### macOS (ARM64)
+```sh
+curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-macos-arm64
+chmod +x todo-macos-arm64
+sudo mv todo-macos-arm64 /usr/local/bin/todo
+```
+
+### Linux (x64)
+```sh
+curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-linux-x64
+chmod +x todo-linux-x64
+sudo mv todo-linux-x64 /usr/local/bin/todo
+```
+
+### Cargo
+```sh
+cargo install todo-cli
+```
+
 ## Quick Start
 
 ```bash
@@ -182,10 +222,12 @@ The dashboard server exposes a JSON API at `/api` on `http://localhost:<port>` (
 - **Search & filter** — filter by actor, tag, priority, and status
 - **Theme** — dark/light mode with system preference detection
 
-## Install via Skills
+## Agent Install
+
+For AI coding agents (opencode, Cline, etc.), install this skill with one command:
 
 ```sh
 npx skills add rayanbo/todo/skills
 ```
 
-Or copy this SKILL.md to your agent's skills folder (e.g. `.opencode/skills/todo/SKILL.md`).
+Or copy `skills/SKILL.md` to your agent's skills folder (e.g. `.opencode/skills/todo/SKILL.md`).

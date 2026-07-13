@@ -3,6 +3,10 @@ use crate::models::*;
 pub fn serialize_todo(todo: &TodoFile) -> String {
     let mut out = String::new();
 
+    if let Some(ref project) = todo.project {
+        out.push_str(&format!("<!-- todo-project: {} -->\n\n", project));
+    }
+
     out.push_str("# Tasks\n\n");
 
     for task in &todo.tasks {

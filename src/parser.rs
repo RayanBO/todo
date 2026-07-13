@@ -6,12 +6,25 @@ use regex::Regex;
 pub fn parse_todo(content: &str) -> Result<TodoFile, String> {
     let mut todo = TodoFile::empty();
 
+    let project_re = Regex::new(r"^<!-- todo-project: (.+) -->$").unwrap();
     let task_re = Regex::new(r"^- \[([ x~B])\] (.+)$").unwrap();
     let meta_re = Regex::new(r"^  - \*\*([A-Za-z-]+)\*\*: (.+)$").unwrap();
     let actor_re = Regex::new(r"^- (.+)$").unwrap();
 
     let mut current_section: Option<String> = None;
     let mut lines = content.lines().peekable();
+
+    // Parse optional project name from first line
+    if let Some(first) = lines.peek() {
+        if let Some(caps) = project_re.captures(first) {
+            todo.project = Some(caps.get(1).unwrap().as_str().to_string());
+            lines.next(); // consume the comment line
+            // skip the blank line that follows
+            if lines.peek().map(|l| l.trim().is_empty()).unwrap_or(false) {
+                lines.next();
+            }
+        }
+    }
 
     while let Some(line) = lines.next() {
         if line.starts_with("# ") || line.starts_with("## ") {

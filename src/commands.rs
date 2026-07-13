@@ -227,8 +227,8 @@ pub fn scan() -> Result<(), String> {
     }
     let mut todo = todo;
     let mut count = 0;
-    let existing_positions: std::collections::HashSet<&str> =
-        todo.tasks.iter().filter_map(|t| t.position.as_deref()).collect();
+    let existing_positions: std::collections::HashSet<String> =
+        todo.tasks.iter().filter_map(|t| t.position.clone()).collect();
     for (text, _line, pos) in &found {
         if existing_positions.contains(pos.as_str()) { continue; }
         let id = crate::id_gen::generate_id();

@@ -172,26 +172,24 @@
                 border-color: var(--primary);
                 color: #fff;
             }
-            .editor-pick {
+            .copy-btn {
                 background: var(--bg);
                 border: 1px solid var(--border);
                 color: var(--text2);
-                padding: 4px 6px;
-                border-radius: 6px;
-                font-size: 11px;
-                font-weight: 600;
+                padding: 1px 5px;
+                border-radius: 4px;
+                font-size: 10px;
                 cursor: pointer;
-                margin-right: 8px;
-                outline: none;
+                margin-left: 4px;
+                line-height: 1.4;
             }
-            .editor-label {
-                color: var(--text2);
-                font-size: 11px;
-                font-weight: 600;
-                margin-right: 4px;
-            }
-            .editor-pick:hover {
+            .copy-btn:hover {
                 border-color: var(--primary);
+                color: var(--primary);
+            }
+            .copy-btn.copied {
+                border-color: var(--primary);
+                color: var(--primary);
             }
             .avatars {
                 display: flex;
@@ -1264,11 +1262,7 @@
                     <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="format-switch" id="formatSwitch"></div>
-                <span class="editor-label">Editor:</span>
-                <select class="editor-pick" id="editorPick" onchange="setEditor(this.value)" title="Ouvrir le fichier dans…">
-                    <option value="vscode">VSCode</option>
-                    <option value="zed">Zed</option>
-                </select>
+
                 <div class="avatars" id="hdr-avatars"></div>
                 <button
                     class="av-add"
@@ -1696,24 +1690,13 @@
                 d.textContent = s;
                 return d.innerHTML;
             }
-            function editorUrl(pos) {
-                const m = pos.match(/^file:\/\/\/(.*?)#L(\d+):(\d+)$/);
-                if (!m) return pos;
-                const path = m[1], line = m[2], col = m[3];
-                const editors = {
-                    vscode: "vscode://file/" + path + ":" + line + ":" + col,
-                    zed: /^[A-Za-z]:/.test(path) ? "file:///" + path + "#L" + line + ":" + col : "zed://file/" + path + ":" + line + ":" + col,
-                };
-                const pref = localStorage.getItem("todo-editor") || "vscode";
-                return editors[pref] || editors.vscode;
-            }
-            function editorName() {
-                const n = { vscode:"VSCode", zed:"Zed" };
-                return n[localStorage.getItem("todo-editor") || "vscode"] || "VSCode";
-            }
-            function setEditor(val) {
-                localStorage.setItem("todo-editor", val);
-                rL(); rK();
+            function copyPos(el) {
+                const pos = el.getAttribute("data-pos");
+                navigator.clipboard.writeText(pos).then(() => {
+                    el.textContent = "copied";
+                    el.classList.add("copied");
+                    setTimeout(() => { el.textContent = "copy"; el.classList.remove("copied"); }, 1500);
+                }).catch(() => {});
             }
             function imgSrc(s) {
                 if (!s) return "";
@@ -2021,7 +2004,7 @@
                         (prio === "high" ? "var(--prio-h-t)" : prio === "medium" ? "var(--prio-m-t)" : "var(--prio-l-t)") +
                         '">' + esc(t.priority) + "</span></div>";
                 if (t.position)
-                    h += '<div class="td-row"><span class="td-label">Position</span><a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '" style="color:var(--primary);font-size:12px;word-break:break-all">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
+                    h += '<div class="td-row"><span class="td-label">Position</span><span style="color:var(--primary);font-size:12px;word-break:break-all">' + esc(t.position.split('/').pop() || t.position) + '</span><button class="copy-btn" data-pos="' + esc(t.position) + '" onclick="copyPos(this)">copy</button></div>';
                 const tags = t.tags || [];
                 if (tags.length) {
                     h += '<div class="td-row"><span class="td-label">Tags</span>';
@@ -2257,7 +2240,7 @@
                             h += '<div class="t-est">' + estHTML + "</div>";
                             h += typeHTML;
                             let posHTML = t.position
-                                ? '<div class="t-pos"><a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '">' + esc(t.position.split('/').pop() || t.position) + "</a></div>"
+                                ? '<div class="t-pos"><span>' + esc(t.position.split('/').pop() || t.position) + '</span><button class="copy-btn" data-pos="' + esc(t.position) + '" onclick="copyPos(this)">copy</button></div>'
                                 : '<div class="t-pos"><span class="prio-none">—</span></div>';
                             h += posHTML;
                             h += peopleHTML;
@@ -2348,7 +2331,7 @@
                         h += "</div>";
                         if (t.position)
                             h +=
-                                '<div class="kbdue" style="font-size:10px">&#128279; <a href="' + esc(editorUrl(t.position)) + '" target="_blank" rel="noopener" title="Ouvrir dans ' + editorName() + '" style="color:var(--text3);text-decoration:none">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
+                                '<div class="kbdue" style="font-size:10px"><span style="color:var(--text3)">' + esc(t.position.split('/').pop() || t.position) + '</span><button class="copy-btn" data-pos="' + esc(t.position) + '" onclick="copyPos(this)" style="font-size:9px">copy</button></div>';
                         if (t.due)
                             h +=
                                 '<div class="kbdue">&#9200; ' +
@@ -2755,7 +2738,6 @@
             });
 
             ld();
-            document.getElementById("editorPick").value = localStorage.getItem("todo-editor") || "vscode";
         </script>
     </body>
 </html>

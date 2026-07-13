@@ -225,10 +225,12 @@ pub fn scan() -> Result<(), String> {
         println!("No TODO: comments found in source files.");
         return Ok(());
     }
-
     let mut todo = todo;
     let mut count = 0;
+    let existing_positions: std::collections::HashSet<&str> =
+        todo.tasks.iter().filter_map(|t| t.position.as_deref()).collect();
     for (text, _line, pos) in &found {
+        if existing_positions.contains(pos.as_str()) { continue; }
         let id = crate::id_gen::generate_id();
         let task = Task {
             id: Some(id.clone()),
@@ -247,11 +249,21 @@ pub fn scan() -> Result<(), String> {
         count += 1;
     }
     write_todo(&todo)?;
-    println!("Found {} TODO: comment{} in source files.", count, if count == 1 { "" } else { "s" });
+    let skipped = found.len() - count;
+    if count == 0 && skipped > 0 {
+        println!("All {} TODO: comment{} already in task list (no new tasks added).", skipped, if skipped == 1 { "" } else { "s" });
+    } else if skipped > 0 {
+        println!("Found {} TODO: comment{} ({} new, {} already tracked).", found.len(), if found.len() == 1 { "" } else { "s" }, count, skipped);
+    } else {
+        println!("Found {} TODO: comment{} in source files.", count, if count == 1 { "" } else { "s" });
+    }
     for (text, _line, pos) in &found {
-        println!("  {}: \"{}\"", pos, text);
+        let exists = existing_positions.contains(pos.as_str());
+        let marker = if exists { " (already tracked)" } else { "" };
+        println!("  {}: \"{}\"{}", pos, text, marker);
     }
     Ok(())
+
 }
 
 pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], priority: Option<Priority>, due: Option<NaiveDateTime>, status: Option<TaskStatus>, position: Option<String>) -> Result<(), String> {

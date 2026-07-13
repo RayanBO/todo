@@ -172,15 +172,14 @@ pub fn cwi(format: Option<&str>) -> Result<(), String> {
 pub fn scan() -> Result<(), String> {
     let todo = read_todo()?;
     let cwd = std::env::current_dir().map_err(|e| format!("CWD error: {}", e))?;
-    let cwd_str = cwd.to_string_lossy().to_string();
-    let re = regex::Regex::new(r"TODO:\s*(.*)").map_err(|e| format!("Regex error: {}", e))?;
+    let re = regex::Regex::new(r"(?m)^\s*(?://|#|<!--|/\*|--|%|;)\s*TODO:\s*(.*)").map_err(|e| format!("Regex error: {}", e))?;
     let skip_dirs = [".todo", ".git", "node_modules", "target", ".opencode", ".agents"];
     let skip_exts = [".exe", ".dll", ".so", ".dylib", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".woff", ".woff2", ".ttf", ".eot", ".o", ".obj", ".pyc", ".class"];
     let skip_files = ["TODO.md", "TODO.yaml", "TODO.yml"];
 
     let mut found: Vec<(String, usize, String)> = Vec::new();
 
-    fn walk(dir: &std::path::Path, cwd_str: &str, re: &regex::Regex, skip_dirs: &[&str], skip_exts: &[&str], skip_files: &[&str], found: &mut Vec<(String, usize, String)>) -> Result<(), String> {
+    fn walk(dir: &std::path::Path, re: &regex::Regex, skip_dirs: &[&str], skip_exts: &[&str], skip_files: &[&str], found: &mut Vec<(String, usize, String)>) -> Result<(), String> {
         let entries = std::fs::read_dir(dir).map_err(|e| format!("Read dir {:?} error: {}", dir, e))?;
         for entry in entries {
             let entry = entry.map_err(|e| format!("Entry error: {}", e))?;
@@ -189,7 +188,7 @@ pub fn scan() -> Result<(), String> {
             if path.is_dir() {
                 let fname = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
                 if skip_dirs.contains(&fname) { continue; }
-                walk(&path, cwd_str, re, skip_dirs, skip_exts, skip_files, found)?;
+                walk(&path, re, skip_dirs, skip_exts, skip_files, found)?;
                 continue;
             }
 
@@ -205,12 +204,12 @@ pub fn scan() -> Result<(), String> {
             };
 
             for (line_no, line) in content.lines().enumerate() {
-                if let Some(m) = re.find(line) {
-                    let text = m.as_str().trim_start_matches("TODO:").trim();
+                if let Some(m) = re.captures(line) {
+                    let text = m.get(1).map(|g| g.as_str().trim()).unwrap_or("");
                     if text.is_empty() { continue; }
-                    let absolute = path.canonicalize().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| path.to_string_lossy().to_string());
-                    let col = m.start() + 5;
-                    let pos = format!("file:///{file}#L{line}:{col}", file = absolute.replace('\\', "/"), line = line_no + 1);
+                    let absolute = path.to_string_lossy().to_string();
+                    let col = m.get(0).unwrap().start() + 1;
+                    let pos = format!("file:///{}#L{}:{}", absolute.replace('\\', "/"), line_no + 1, col);
                     if !found.iter().any(|(_, _, t)| t == &pos) {
                         found.push((text.to_string(), line_no + 1, pos));
                     }
@@ -220,7 +219,7 @@ pub fn scan() -> Result<(), String> {
         Ok(())
     }
 
-    walk(&cwd, &cwd_str, &re, &skip_dirs, &skip_exts, &skip_files, &mut found)?;
+    walk(&cwd, &re, &skip_dirs, &skip_exts, &skip_files, &mut found)?;
 
     if found.is_empty() {
         println!("No TODO: comments found in source files.");

@@ -551,6 +551,25 @@
             .spin-ring {
                 cursor: pointer;
             }
+            .blocked-ring {
+                width: 18px;
+                height: 18px;
+                border-radius: 50%;
+                border: 2.5px solid var(--blocked);
+                flex-shrink: 0;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                box-sizing: border-box;
+            }
+            .blocked-ring::after {
+                content: "";
+                width: 7px;
+                height: 2px;
+                background: var(--blocked);
+                border-radius: 1px;
+            }
 
             .stpick {
                 position: fixed;
@@ -2175,7 +2194,11 @@
                             h +=
                                 t.status === "InProgress"
                                     ? '<span class="spin-ring" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')"></span>'
-                                    : '<input type="checkbox" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')">';
+                                    : t.status === "Done"
+                                        ? '<input type="checkbox" checked onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')">'
+                                        : t.status === "Blocked"
+                                            ? '<span class="blocked-ring" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')"></span>'
+                                            : '<input type="checkbox" onclick="showStPick(event,\'' + t.id + '\',\'' + t.status + '\')">';
                             h +=
                                 '<div class="t-name' +
                                 (t.description && t.description.includes('\n') ? ' t-name-multi' : '') +
@@ -2256,7 +2279,7 @@
                             '" onclick="kbc(\'' +
                             t.id +
                             '\')">' +
-                            (t.status === "InProgress" ? '<span class="spin-ring" style="width:14px;height:14px;border-width:2px;margin-right:4px;vertical-align:middle"></span>' : '') +
+                            (t.status === "InProgress" ? '<span class="spin-ring" style="width:14px;height:14px;border-width:2px;margin-right:4px;vertical-align:middle"></span>' : t.status === "Done" ? '<span style="display:inline-flex;width:14px;height:14px;border-radius:50%;border:2px solid var(--done);align-items:center;justify-content:center;margin-right:4px;font-size:8px;color:var(--done);vertical-align:middle;flex-shrink:0">&#10003;</span>' : t.status === "Blocked" ? '<span style="display:inline-flex;width:14px;height:14px;border-radius:50%;border:2px solid var(--blocked);align-items:center;justify-content:center;margin-right:4px;vertical-align:middle;flex-shrink:0"><span style="width:6px;height:2px;background:var(--blocked);border-radius:1px"></span></span>' : '') +
                             '<span class="kbid">#' +
                             t.id +
                             "</span>";

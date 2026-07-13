@@ -1695,7 +1695,7 @@
                 const path = m[1], line = m[2], col = m[3];
                 const editors = {
                     vscode: "vscode://file/" + path + ":" + line + ":" + col,
-                    zed: "zed://file/" + path + ":" + line + ":" + col,
+                    zed: (/^[A-Za-z]:/.test(path) ? "zed://file" : "zed://file/") + path + ":" + line + ":" + col,
                 };
                 const pref = localStorage.getItem("todo-editor") || "vscode";
                 return editors[pref] || editors.vscode;

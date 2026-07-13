@@ -1258,13 +1258,15 @@
                     <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
                 <div class="format-switch" id="formatSwitch"></div>
-                <select class="editor-pick" id="editorPick" onchange="setEditor(this.value)" title="Ouvrir dans">
+                <select class="editor-pick" id="editorPick" onchange="setEditor(this.value)" title="Ouvrir le fichier dans…">
+                    <option value="file">Explorateur</option>
                     <option value="vscode">VSCode</option>
                     <option value="cursor">Cursor</option>
                     <option value="windsurf">Windsurf</option>
                     <option value="zed">Zed</option>
+                    <option value="sublime">Sublime Text</option>
                     <option value="webstorm">WebStorm</option>
-                    <option value="file">Explorer</option>
+                    <option value="intellij">IntelliJ</option>
                 </select>
                 <div class="avatars" id="hdr-avatars"></div>
                 <button
@@ -1698,19 +1700,21 @@
                 if (!m) return pos;
                 const path = m[1], line = m[2], col = m[3];
                 const editors = {
+                    file: "file:///" + path,
                     vscode: "vscode://file/" + path + ":" + line + ":" + col,
                     cursor: "cursor://file/" + path + ":" + line + ":" + col,
                     windsurf: "windsurf://file/" + path + ":" + line + ":" + col,
                     zed: "zed:///" + path + "?line=" + line + "&column=" + col,
                     webstorm: "webstorm://open?file=" + path + "&line=" + line + "&column=" + col,
-                    file: "file:///" + path
+                    sublime: "subl://open?url=file:///" + path + "&line=" + line + "&column=" + col,
+                    intellij: "idea://open?file=" + path + "&line=" + line + "&column=" + col
                 };
-                const pref = localStorage.getItem("todo-editor") || "vscode";
-                return editors[pref] || editors.vscode;
+                const pref = localStorage.getItem("todo-editor") || "file";
+                return editors[pref] || editors.file;
             }
             function editorName() {
-                const n = { vscode:"VSCode", cursor:"Cursor", windsurf:"Windsurf", zed:"Zed", webstorm:"WebStorm", file:"Explorer" };
-                return n[localStorage.getItem("todo-editor") || "vscode"] || "VSCode";
+                const n = { file:"Explorateur", vscode:"VSCode", cursor:"Cursor", windsurf:"Windsurf", zed:"Zed", sublime:"Sublime Text", webstorm:"WebStorm", intellij:"IntelliJ" };
+                return n[localStorage.getItem("todo-editor") || "file"] || "Explorateur";
             }
             function setEditor(val) {
                 localStorage.setItem("todo-editor", val);
@@ -2756,7 +2760,7 @@
             });
 
             ld();
-            document.getElementById("editorPick").value = localStorage.getItem("todo-editor") || "vscode";
+            document.getElementById("editorPick").value = localStorage.getItem("todo-editor") || "file";
         </script>
     </body>
 </html>

@@ -35,6 +35,9 @@ pub fn serialize_todo(todo: &TodoFile) -> String {
         if let Some(created) = &task.created {
             out.push_str(&format!("  - **Created**: {}\n", created.format("%Y-%m-%d %H:%M")));
         }
+        if let Some(position) = &task.position {
+            out.push_str(&format!("  - **Position**: \"{}\"\n", position));
+        }
         if !task.tags.is_empty() {
             out.push_str(&format!("  - **Tags**: {}\n", task.tags.join(", ")));
         }

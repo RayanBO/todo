@@ -1,13 +1,14 @@
 use crate::commands;
+use crate::config::Config;
 use crate::models::*;
 use crate::parser::parse_todo;
+use crate::yaml_util;
 use serde::Deserialize;
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 
-const TODO_FILE: &str = "./TODO.md";
 const DASHBOARD_HTML: &str = include_str!("../dashboard/index.html");
 const DASHBOARD_FAVICON: &[u8] = include_bytes!("../dashboard/favicon.svg");
 
@@ -87,6 +88,8 @@ fn handle_client(mut stream: TcpStream) {
             ("GET", "/") => serve_html(),
             ("GET", "/favicon.svg") => serve_favicon(),
             ("GET", "/api/todo") => api_get_todo(),
+            ("GET", "/api/formats") => api_get_formats(),
+            ("POST", "/api/cwi") => api_set_cwi(&body),
             ("POST", "/api/add-task") => api_add_task(&body),
             ("POST", "/api/add-actor") => api_add_actor(&body),
             ("POST", "/api/add-comment") => api_add_comment(&body),
@@ -253,12 +256,50 @@ fn serve_html() -> String {
 }
 
 fn read_todo_json() -> Result<String, String> {
-    if !Path::new(TODO_FILE).exists() {
+    let cfg = Config::load();
+    let file = cfg.todo_file();
+    if !Path::new(&file).exists() {
         return Ok(serde_json::to_string(&TodoFile::empty()).unwrap_or_default());
     }
-    let content = fs::read_to_string(TODO_FILE).map_err(|e| format!("Read error: {}", e))?;
-    let todo = parse_todo(&content)?;
+    let content = fs::read_to_string(&file).map_err(|e| format!("Read error: {}", e))?;
+    let todo = if cfg.cwi == "yaml" {
+        yaml_util::read_yaml(&content)?
+    } else {
+        parse_todo(&content)?
+    };
     serde_json::to_string(&todo).map_err(|e| format!("JSON error: {}", e))
+}
+
+fn api_get_formats() -> String {
+    let cfg = Config::load();
+    let formats: Vec<&str> = ["md", "yaml"].iter()
+        .filter(|f| Path::new(&format!("./TODO.{}", f)).exists())
+        .copied()
+        .collect();
+    json_response(200, serde_json::json!({
+        "cwi": cfg.cwi,
+        "formats": formats
+    }))
+}
+
+fn api_set_cwi(body: &str) -> String {
+    let parsed: serde_json::Value = match serde_json::from_str(body) {
+        Ok(v) => v,
+        Err(e) => return json_response(400, serde_json::json!({"error": format!("Invalid JSON: {}", e)})),
+    };
+    let format = parsed["format"].as_str().unwrap_or("");
+    if format != "md" && format != "yaml" {
+        return json_response(400, serde_json::json!({"error": "Format must be 'md' or 'yaml'"}));
+    }
+    let file = format!("./TODO.{}", format);
+    if !Path::new(&file).exists() {
+        return json_response(400, serde_json::json!({"error": format!("{} not initialized", file)}));
+    }
+    let cfg = Config { cwi: format.to_string() };
+    match cfg.save() {
+        Ok(()) => json_response(200, serde_json::json!({"ok": true, "cwi": format})),
+        Err(e) => json_response(500, serde_json::json!({"error": e})),
+    }
 }
 
 fn api_get_todo() -> String {
@@ -276,6 +317,7 @@ struct AddTaskBody {
     priority: Option<String>,
     due: Option<String>,
     status: Option<String>,
+    position: Option<String>,
 }
 
 fn api_add_task(body: &str) -> String {
@@ -298,7 +340,7 @@ fn api_add_task(body: &str) -> String {
     let prio = data.priority.as_deref().and_then(Priority::from_str);
     let due_date = data.due.as_deref().and_then(|d| chrono::NaiveDateTime::parse_from_str(d, "%Y-%m-%d %H:%M").ok());
     let st = data.status.as_deref().and_then(TaskStatus::from_str);
-    match commands::add_task(&data.description, &actor_ids, &tag_list, prio, due_date, st) {
+    match commands::add_task(&data.description, &actor_ids, &tag_list, prio, due_date, st, data.position) {
         Ok(()) => json_response(200, serde_json::json!({"ok": true})),
         Err(e) => json_response(500, serde_json::json!({"error": e})),
     }
@@ -337,7 +379,7 @@ fn api_update_actor(body: &str) -> String {
     match commands::update(
         &data.id, None, None, data.pseudo.as_deref(), None,
         None, None, data.pic.as_deref(), None, None, None,
-        data.actor_type.as_deref(),
+        data.actor_type.as_deref(), None,
     ) {
         Ok(()) => json_response(200, serde_json::json!({"ok": true})),
         Err(e) => json_response(500, serde_json::json!({"error": e})),
@@ -381,6 +423,7 @@ struct UpdateBody {
     tags: Option<String>,
     priority: Option<String>,
     blocked_reason: Option<String>,
+    position: Option<String>,
 }
 
 fn api_update(body: &str) -> String {
@@ -393,7 +436,7 @@ fn api_update(body: &str) -> String {
         data.name.as_deref(), data.text.as_deref(),
         data.actors.as_deref(), data.comments.as_deref(),
         data.pic.as_deref(), data.tags.as_deref(), data.priority.as_deref(),
-        data.blocked_reason.as_deref(), None,
+        data.blocked_reason.as_deref(), None, data.position.as_deref(),
     ) {
         Ok(()) => json_response(200, serde_json::json!({"ok": true})),
         Err(e) => json_response(500, serde_json::json!({"error": e})),

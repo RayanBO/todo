@@ -86,6 +86,9 @@ pub fn parse_todo(content: &str) -> Result<TodoFile, String> {
                                     "created" => {
                                         task.created = NaiveDateTime::parse_from_str(&value, "%Y-%m-%d %H:%M").ok();
                                     }
+                                    "position" => {
+                                        task.position = Some(value.trim_matches('"').to_string());
+                                    }
                                     _ => {}
                                 }
                             }

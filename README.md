@@ -47,7 +47,7 @@ This teaches the agent all CLI commands, the data model, the HTTP API, and dashb
 ## Quick Start
 
 ```bash
-# Initialize a new TODO.md
+# Initialize a new TODO file (supports Markdown and YAML)
 todo init
 
 # Add your first task
@@ -56,13 +56,16 @@ todo add --task "Set up CI pipeline" --actors u0v1
 # Add an actor
 todo add --actor "Alice" --pic https://example.com/alice.png
 
+# Auto-detect TODOs in source code
+todo scan
+
 # Open the web dashboard
 todo dashboard
 ```
 
 ## Storage
 
-All data lives in a single `TODO.md` file at the project root.
+All data lives in a single file — `TODO.md` (Markdown) or `TODO.yaml` (YAML) — at the project root. Switch between them with `todo cwi`.
 
 ```
 # Tasks
@@ -88,15 +91,17 @@ All data lives in a single `TODO.md` file at the project root.
 ## CLI Commands
 
 | Command | Description |
-|---|---|
-| `todo init [--force]` | Create a new TODO.md (overwrite with `--force`) |
-| `todo add --task <desc> [--actors ids]` | Create a task |
+|---|---|---|
+| `todo init [--force] [--yaml] [--both]` | Create a new TODO file (md, yaml, or both) |
+| `todo add --task <desc> [--actors ids] [--position url]` | Create a task |
 | `todo add --actor <pseudo> [--pic url]` | Create an actor |
 | `todo add --comment <text> --task-id <id>` | Add a comment to a task |
 | `todo list [--tasks] [--actors] [--comments]` | List items in the terminal |
-| `todo update <id> [--description] [--due] [--name] [--text]` | Update any item |
+| `todo update <id> [--description] [--due] [--name] [--text] [--position]` | Update any item |
 | `todo delete <id>` | Delete an item (cascades to references) |
 | `todo status <id> --set <status> [--reason]` | Change task status |
+| `todo scan` | Scan source files for TODO: comments and add as tasks |
+| `todo cwi [md\|yaml]` | Switch between Markdown and YAML format |
 | `todo dashboard` | Start the web dashboard |
 
 **Status tokens**: `[ ]` todo · `[~]` in progress · `[x]` done · `[B]` blocked
@@ -105,9 +110,10 @@ All data lives in a single `TODO.md` file at the project root.
 
 Start it with `todo dashboard`, then open the provided URL in your browser.
 
-- **List view** — tasks grouped by status with a detail panel, full CRUD
-- **Kanban view** — 4 columns (Todo, In Progress, Done, Blocked) with drag & drop
-- **Modals** — add/edit tasks, actors, and comments inline
+- **List view** — tasks grouped by status with a detail panel, full CRUD, and clickable Position links
+- **Kanban view** — 4 columns (Todo, In Progress, Done, Blocked) with drag & drop and position links
+- **Format switcher** — toggle between TODO.md and TODO.yaml from the header when both exist
+- **Modals** — add/edit tasks, actors, and comments inline, including the Position field
 - **Search & filter** — filter by actor, tag, priority, and status
 - **Theme** — dark/light mode with system preference detection
 
@@ -116,6 +122,8 @@ Start it with `todo dashboard`, then open the provided URL in your browser.
 | Route | Method | Purpose |
 |---|---|---|
 | `/api/todo` | GET | Fetch full project data (JSON) |
+| `/api/formats` | GET | List available formats + active format |
+| `/api/cwi` | POST | Switch active format |
 | `/api/add-task` | POST | Create a task |
 | `/api/add-actor` | POST | Create an actor |
 | `/api/add-comment` | POST | Create a comment |
@@ -140,7 +148,8 @@ The binary is placed at `target/release/todo.exe`.
 
 ```
 todo (Rust CLI)
-  → TODO.md (flat-file storage)
+  → .todo/config (format preference)
+  → TODO.md / TODO.yaml (flat-file storage)
   → Rust HTTP server (TcpListener)
   → dashboard/index.html (static SPA)
 ```

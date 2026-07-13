@@ -57,9 +57,21 @@ todo list
 todo dashboard
 ```
 
+### Auto-detect TODOs in source code
+```bash
+todo scan
+```
+
+Scans all source files for `TODO:` comments and adds them as tasks with code positions. Switch formats anytime:
+
+```bash
+todo cwi yaml   # use TODO.yaml instead of TODO.md
+todo cwi md     # switch back to TODO.md
+```
+
 ## Project State
 
-A project lives in a single `TODO.md` file. The file has three sections:
+A project lives in a single file — either `TODO.md` (Markdown) or `TODO.yaml` (YAML). Switch between formats with `todo cwi`. The file has three sections:
 
 - `# Tasks` — array of task objects
 - `# Actors` — array of actor objects
@@ -68,17 +80,18 @@ A project lives in a single `TODO.md` file. The file has three sections:
 ### Task fields
 
 | Field | Type | Description |
-|---|---|---|
+|---|---|---|---|
 | `id` | string | 4-char alphanumeric (auto-generated) |
 | `description` | string | Task description |
 | `status` | "todo"\|"en-cours"\|"done"\|"bloqued" | Current status |
 | `priority` | "low"\|"medium"\|"high"\|null | Priority level |
 | `tags` | string[] | Labels |
 | `actors` | string[] | Actor IDs assigned |
-| `created_at` | datetime | Creation timestamp |
+| `created` | datetime\|null | Creation timestamp |
 | `due` | datetime\|null | Due date |
 | `blocked_reason` | string\|null | Reason if blocked |
 | `comments` | string[] | Comment IDs |
+| `position` | string\|null | Code position URL (e.g. `file:///path/to/file#L42:10`) |
 
 ### Actor fields
 
@@ -101,17 +114,21 @@ A project lives in a single `TODO.md` file. The file has three sections:
 ## CLI Commands
 
 ### `todo init`
-Initialize a new TODO.md file.
+Initialize a new TODO file. Supports both Markdown and YAML formats.
 
 ```bash
-todo init [--force]
+todo init [--force] [--yaml] [--both]
 ```
+
+- `--yaml` — create `TODO.yaml` instead of `TODO.md`
+- `--both` — create both `TODO.md` and `TODO.yaml`
+- `--force` — overwrite existing file(s)
 
 ### `todo add --task`
 Create a task.
 
 ```bash
-todo add --task <description> [--actors <ids>] [--tags <labels>] [--priority <level>] [--due <date>]
+todo add --task <description> [--actors <ids>] [--tags <labels>] [--priority <level>] [--due <date>] [--position <url>]
 ```
 
 - `--task` — description (required)
@@ -119,6 +136,7 @@ todo add --task <description> [--actors <ids>] [--tags <labels>] [--priority <le
 - `--tags` — comma-separated labels
 - `--priority` — `low|medium|high`
 - `--due` — `YYYY-MM-DD HH:MM`
+- `--position` — code position URL (e.g. `file:///path/to/file#L42:10`)
 
 ### `todo add --actor`
 Create an actor.
@@ -145,8 +163,10 @@ todo list [--tasks] [--actors] [--comments] [--status <status>] [--search <query
 Update any item by ID.
 
 ```bash
-todo update <id> [--description <text>] [--due <date>] [--priority <level>] [--actors <ids>] [--tags <labels>] [--name <pseudo>] [--pic <url>] [--text <text>]
+todo update <id> [--description <text>] [--due <date>] [--priority <level>] [--actors <ids>] [--tags <labels>] [--name <pseudo>] [--pic <url>] [--text <text>] [--position <url>]
 ```
+
+- `--position` — change the code position URL
 
 ### `todo status`
 Change task status.
@@ -164,6 +184,24 @@ Delete an item by ID. Cascades to all references.
 ```bash
 todo delete <id>
 ```
+
+### `todo scan`
+Recursively scan source files for `TODO:` comments and add them as tasks with code positions.
+
+```bash
+todo scan
+```
+
+Scans all files (except `TODO.md`, `TODO.yaml`, `.todo/`, `.git/`, `node_modules/`, `target/`, binary files). Each found comment becomes a new task with its `position` set to the exact file location.
+
+### `todo cwi`
+Switch between Markdown and YAML format.
+
+```bash
+todo cwi [md|yaml]
+```
+
+With no argument, shows the current format. Requires the target format's file to exist.
 
 ### `todo tags`
 List all tags with task counts.
@@ -207,6 +245,8 @@ The dashboard server exposes a JSON API at `/api` on `http://localhost:<port>` (
 | Method | Route | Purpose |
 |---|---|---|
 | GET | `/api/todo` | Full project data |
+| GET | `/api/formats` | List available formats + current |
+| POST | `/api/cwi` | Switch active format |
 | POST | `/api/add-task` | Create task |
 | POST | `/api/add-actor` | Create actor |
 | POST | `/api/add-comment` | Create comment |
@@ -216,9 +256,10 @@ The dashboard server exposes a JSON API at `/api` on `http://localhost:<port>` (
 
 ## Dashboard UI
 
-- **List view** — tasks grouped by status with detail panel and full CRUD
-- **Kanban view** — 4 columns (Todo, En cours, Done, Bloqued) with drag & drop
-- **Modals** — add/edit tasks, actors, and comments inline
+- **List view** — tasks grouped by status with detail panel and full CRUD, displays Position column with clickable links
+- **Kanban view** — 4 columns (Todo, En cours, Done, Bloqued) with drag & drop, shows position links
+- **Format switcher** — toggle between TODO.md and TODO.yaml from the header
+- **Modals** — add/edit tasks, actors, and comments inline, including the Position field
 - **Search & filter** — filter by actor, tag, priority, and status
 - **Theme** — dark/light mode with system preference detection
 

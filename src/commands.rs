@@ -1,26 +1,42 @@
+use crate::config::Config;
 use crate::id_gen::generate_id;
 use crate::models::*;
 use crate::parser::parse_todo;
 use crate::serializer::serialize_todo;
 use crate::tags;
+use crate::yaml_util;
 use chrono::NaiveDateTime;
 use std::fs;
 use std::io::{stdin, stdout, Write};
 use std::path::Path;
 
-const TODO_FILE: &str = "./TODO.md";
+fn current_file() -> String {
+    Config::load().todo_file()
+}
 
 fn read_todo() -> Result<TodoFile, String> {
-    if !Path::new(TODO_FILE).exists() {
-        return Err("TODO.md not found. Run `todo init` first.".to_string());
+    let cfg = Config::load();
+    let file = cfg.todo_file();
+    if !Path::new(&file).exists() {
+        return Err(format!("{} not found. Run `todo init` first.", file));
     }
-    let content = fs::read_to_string(TODO_FILE).map_err(|e| format!("Read error: {}", e))?;
-    parse_todo(&content)
+    let content = fs::read_to_string(&file).map_err(|e| format!("Read error: {}", e))?;
+    if cfg.cwi == "yaml" {
+        yaml_util::read_yaml(&content)
+    } else {
+        parse_todo(&content)
+    }
 }
 
 fn write_todo(todo: &TodoFile) -> Result<(), String> {
-    let content = serialize_todo(todo);
-    fs::write(TODO_FILE, content).map_err(|e| format!("Write error: {}", e))
+    let cfg = Config::load();
+    let file = cfg.todo_file();
+    let content = if cfg.cwi == "yaml" {
+        yaml_util::write_yaml(todo)?
+    } else {
+        serialize_todo(todo)
+    };
+    fs::write(&file, content).map_err(|e| format!("Write error: {}", e))
 }
 
 fn is_valid_format(content: &str) -> bool {
@@ -36,46 +52,201 @@ fn prompt_overwrite() -> Result<bool, String> {
     Ok(input != "n" && input != "no")
 }
 
-pub fn init(force: bool) -> Result<(), String> {
-    if !Path::new(TODO_FILE).exists() {
-        let mut todo = TodoFile::empty();
-        todo.project = std::env::current_dir()
-            .ok()
-            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
-        write_todo(&todo)?;
-        println!("Created TODO.md");
-        return Ok(());
-    }
-
-    let content = fs::read_to_string(TODO_FILE).map_err(|e| format!("Read error: {}", e))?;
-
-    if is_valid_format(&content) {
-        if force {
-            let mut todo = TodoFile::empty();
-            todo.project = std::env::current_dir()
-                .ok()
-                .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
-            write_todo(&todo)?;
-            println!("Overwritten TODO.md");
-            return Ok(());
+fn prompt_format() -> Result<(bool, bool), String> {
+    print!("Initialize as markdown or yaml? (md/yaml/both) [md]: ");
+    stdout().flush().map_err(|e| format!("Flush error: {}", e))?;
+    let mut input = String::new();
+    stdin().read_line(&mut input).map_err(|e| format!("Read error: {}", e))?;
+    let input = input.trim().to_lowercase();
+    match input.as_str() {
+        "" | "md" | "markdown" => Ok((false, false)),
+        "yaml" | "yml" => Ok((true, false)),
+        "both" | "all" => Ok((false, true)),
+        _ => {
+            println!("Invalid choice. Defaulting to markdown.");
+            Ok((false, false))
         }
-        return Err("TODO.md exists with valid format. Use --force to overwrite.".to_string());
+    }
+}
+
+fn save_todo(todo: &TodoFile, file: &str) -> Result<(), String> {
+    let content = if file.ends_with(".yaml") || file.ends_with(".yml") {
+        yaml_util::write_yaml(todo)?
+    } else {
+        serialize_todo(todo)
+    };
+    fs::write(file, content).map_err(|e| format!("Write error: {}", e))
+}
+
+fn set_project(todo: &mut TodoFile) {
+    todo.project = std::env::current_dir()
+        .ok()
+        .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
+}
+
+pub fn init(force: bool, yaml: bool, both: bool) -> Result<(), String> {
+    let (use_yaml, use_both) = if yaml {
+        (true, false)
+    } else if both {
+        (false, true)
+    } else if !Config::any_exists() {
+        // prompt user if no flags and no files exist
+        prompt_format()?
+    } else {
+        (false, false)
+    };
+
+    let init_md = !use_yaml || use_both;
+    let init_yaml = use_yaml || use_both;
+
+    if init_md {
+        let path = Path::new("./TODO.md");
+        let exists = path.exists();
+        if !exists || force || !is_valid_format(&fs::read_to_string(path).unwrap_or_default()) {
+            let mut todo = TodoFile::empty();
+            set_project(&mut todo);
+            save_todo(&todo, "./TODO.md")?;
+            if !exists { println!("Created TODO.md"); }
+            else { println!("Overwritten TODO.md"); }
+        } else if !force {
+            return Err("TODO.md exists with valid format. Use --force to overwrite.".to_string());
+        }
     }
 
-    if force || prompt_overwrite()? {
-        let mut todo = TodoFile::empty();
-        todo.project = std::env::current_dir()
-            .ok()
-            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().to_string()));
-        write_todo(&todo)?;
-        println!("Overwritten TODO.md");
-    } else {
-        println!("Aborted.");
+    if init_yaml {
+        let path = Path::new("./TODO.yaml");
+        let exists = path.exists();
+        if !exists || force {
+            let mut todo = TodoFile::empty();
+            set_project(&mut todo);
+            save_todo(&todo, "./TODO.yaml")?;
+            if !exists { println!("Created TODO.yaml"); }
+            else { println!("Overwritten TODO.yaml"); }
+        } else if !force {
+            return Err("TODO.yaml exists. Use --force to overwrite.".to_string());
+        }
+    }
+
+    // set cwi to yaml if only yaml was created
+    if init_yaml && !init_md {
+        let cfg = Config { cwi: "yaml".to_string() };
+        cfg.save()?;
+    }
+
+    Ok(())
+}
+
+pub fn cwi(format: Option<&str>) -> Result<(), String> {
+    let mut cfg = Config::load();
+    match format {
+        Some(f) => {
+            let f = f.to_lowercase();
+            if f != "md" && f != "yaml" && f != "yml" {
+                return Err("Format must be 'md' or 'yaml'".to_string());
+            }
+            let f = if f == "yml" { "yaml" } else { &f };
+            let file = format!("./TODO.{}", f);
+            if !Path::new(&file).exists() {
+                return Err(format!("{} not found. Run `todo init` first.", file));
+            }
+            cfg.cwi = f.to_string();
+            cfg.save()?;
+            println!("Switched to TODO.{}", f);
+        }
+        None => {
+            println!("Current: TODO.{}", cfg.cwi);
+        }
     }
     Ok(())
 }
 
-pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], priority: Option<Priority>, due: Option<NaiveDateTime>, status: Option<TaskStatus>) -> Result<(), String> {
+pub fn scan() -> Result<(), String> {
+    let todo = read_todo()?;
+    let cwd = std::env::current_dir().map_err(|e| format!("CWD error: {}", e))?;
+    let cwd_str = cwd.to_string_lossy().to_string();
+    let re = regex::Regex::new(r"TODO:\s*(.*)").map_err(|e| format!("Regex error: {}", e))?;
+    let skip_dirs = [".todo", ".git", "node_modules", "target", ".opencode", ".agents"];
+    let skip_exts = [".exe", ".dll", ".so", ".dylib", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".ico", ".svg", ".woff", ".woff2", ".ttf", ".eot", ".o", ".obj", ".pyc", ".class"];
+    let skip_files = ["TODO.md", "TODO.yaml", "TODO.yml"];
+
+    let mut found: Vec<(String, usize, String)> = Vec::new();
+
+    fn walk(dir: &std::path::Path, cwd_str: &str, re: &regex::Regex, skip_dirs: &[&str], skip_exts: &[&str], skip_files: &[&str], found: &mut Vec<(String, usize, String)>) -> Result<(), String> {
+        let entries = std::fs::read_dir(dir).map_err(|e| format!("Read dir {:?} error: {}", dir, e))?;
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("Entry error: {}", e))?;
+            let path = entry.path();
+
+            if path.is_dir() {
+                let fname = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                if skip_dirs.contains(&fname) { continue; }
+                walk(&path, cwd_str, re, skip_dirs, skip_exts, skip_files, found)?;
+                continue;
+            }
+
+            let fname = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if skip_files.contains(&fname) { continue; }
+
+            let ext = path.extension().and_then(|e| e.to_str()).map(|e| format!(".{}", e.to_lowercase())).unwrap_or_default();
+            if skip_exts.contains(&ext.as_str()) { continue; }
+
+            let content = match std::fs::read_to_string(&path) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
+
+            for (line_no, line) in content.lines().enumerate() {
+                if let Some(m) = re.find(line) {
+                    let text = m.as_str().trim_start_matches("TODO:").trim();
+                    if text.is_empty() { continue; }
+                    let absolute = path.canonicalize().map(|p| p.to_string_lossy().to_string()).unwrap_or_else(|_| path.to_string_lossy().to_string());
+                    let col = m.start() + 5;
+                    let pos = format!("file:///{file}#L{line}:{col}", file = absolute.replace('\\', "/"), line = line_no + 1);
+                    if !found.iter().any(|(_, _, t)| t == &pos) {
+                        found.push((text, line_no + 1, pos));
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    walk(&cwd, &cwd_str, &re, &skip_dirs, &skip_exts, &skip_files, &mut found)?;
+
+    if found.is_empty() {
+        println!("No TODO: comments found in source files.");
+        return Ok(());
+    }
+
+    let mut todo = todo;
+    let mut count = 0;
+    for (text, _line, pos) in &found {
+        let id = crate::id_gen::generate_id();
+        let task = Task {
+            id: Some(id.clone()),
+            status: TaskStatus::Todo,
+            description: text.clone(),
+            due: None,
+            actors: Vec::new(),
+            comments: Vec::new(),
+            blocked_reason: None,
+            tags: Vec::new(),
+            priority: None,
+            created: Some(chrono::Local::now().naive_local()),
+            position: Some(pos.clone()),
+        };
+        todo.tasks.push(task);
+        count += 1;
+    }
+    write_todo(&todo)?;
+    println!("Found {} TODO: comment{} in source files.", count, if count == 1 { "" } else { "s" });
+    for (text, _line, pos) in &found {
+        println!("  {}: \"{}\"", pos, text);
+    }
+    Ok(())
+}
+
+pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], priority: Option<Priority>, due: Option<NaiveDateTime>, status: Option<TaskStatus>, position: Option<String>) -> Result<(), String> {
     let mut todo = read_todo()?;
     let id = generate_id();
     let task = Task {
@@ -89,6 +260,7 @@ pub fn add_task(description: &str, actor_ids: &[String], tag_list: &[String], pr
         tags: tags::normalize_tags(tag_list),
         priority,
         created: Some(chrono::Local::now().naive_local()),
+        position,
     };
     todo.tasks.push(task);
     write_todo(&todo)?;
@@ -138,6 +310,7 @@ pub fn add_comment(text: &str, task_id: &str, actor_ids: &[String]) -> Result<()
     Ok(())
 }
 
+// Rest of the file unchanged from here
 pub fn list(tasks: bool, actors: bool, comments: bool, tag_filter: &[String], priority_filter: Option<Priority>, search_query: Option<&str>, overdue: bool) -> Result<(), String> {
     let todo = read_todo()?;
 
@@ -199,6 +372,9 @@ pub fn list(tasks: bool, actors: bool, comments: bool, tag_filter: &[String], pr
             if let Some(reason) = &task.blocked_reason {
                 println!("      Blocked: {}", reason);
             }
+            if let Some(pos) = &task.position {
+                println!("      Position: {}", pos);
+            }
         }
     }
 
@@ -229,7 +405,7 @@ pub fn list(tasks: bool, actors: bool, comments: bool, tag_filter: &[String], pr
     Ok(())
 }
 
-pub fn update(id: &str, description: Option<&str>, due: Option<&str>, name: Option<&str>, text: Option<&str>, actors: Option<&str>, comments: Option<&str>, pic: Option<&str>, tags: Option<&str>, priority: Option<&str>, blocked_reason: Option<&str>, actor_type: Option<&str>) -> Result<(), String> {
+pub fn update(id: &str, description: Option<&str>, due: Option<&str>, name: Option<&str>, text: Option<&str>, actors: Option<&str>, comments: Option<&str>, pic: Option<&str>, tags: Option<&str>, priority: Option<&str>, blocked_reason: Option<&str>, actor_type: Option<&str>, position: Option<&str>) -> Result<(), String> {
     let mut todo = read_todo()?;
     let mut found = false;
 
@@ -260,6 +436,9 @@ pub fn update(id: &str, description: Option<&str>, due: Option<&str>, name: Opti
             if let Some(r) = blocked_reason {
                 let trimmed = r.trim();
                 task.blocked_reason = if trimmed.is_empty() { None } else { Some(trimmed.to_string()) };
+            }
+            if let Some(p) = position {
+                task.position = if p.trim().is_empty() { None } else { Some(p.trim().to_string()) };
             }
             found = true;
         }

@@ -1,10 +1,12 @@
 mod commands;
+mod config;
 mod dashboard;
 mod id_gen;
 mod models;
 mod parser;
 mod serializer;
 mod tags;
+mod yaml_util;
 
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
@@ -14,7 +16,7 @@ use models::Priority;
 #[derive(Parser)]
 #[command(name = "todo")]
 #[command(version)]
-#[command(about = "Manage project tasks in TODO.md")]
+#[command(about = "Manage project tasks in TODO.md or TODO.yaml")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -22,11 +24,17 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Create a new TODO.md file
+    /// Create a new TODO file (md or yaml)
     Init {
         /// Force overwrite if file exists
         #[arg(long)]
         force: bool,
+        /// Use YAML format instead of markdown
+        #[arg(long)]
+        yaml: bool,
+        /// Create both TODO.md and TODO.yaml
+        #[arg(long)]
+        both: bool,
     },
     /// Add a task, actor, or comment
     Add {
@@ -57,6 +65,9 @@ enum Commands {
         /// Due date for the task (YYYY-MM-DD HH:MM)
         #[arg(long)]
         due: Option<String>,
+        /// Code position URL (file:///path#Lline:col)
+        #[arg(long)]
+        position: Option<String>,
     },
     /// List tasks, actors, or comments
     List {
@@ -110,6 +121,9 @@ enum Commands {
         /// New priority: low, medium, high
         #[arg(long)]
         priority: Option<String>,
+        /// New code position URL
+        #[arg(long)]
+        position: Option<String>,
     },
     /// Delete an item by ID
     Delete {
@@ -147,6 +161,13 @@ enum Commands {
         #[arg(long)]
         yes: bool,
     },
+    /// Set current working file format (md or yaml)
+    Cwi {
+        /// Format to switch to: md or yaml
+        format: Option<String>,
+    },
+    /// Scan source files for TODO: comments and add them as tasks
+    Scan,
 }
 
 fn main() {
@@ -169,15 +190,15 @@ fn main() {
     let cli = Cli::parse();
 
     let result = match &cli.command {
-        Commands::Init { force } => commands::init(*force),
-        Commands::Add { task, actors, actor, pic, comment, task_id, tag, priority, due } => {
+        Commands::Init { force, yaml, both } => commands::init(*force, *yaml, *both),
+        Commands::Add { task, actors, actor, pic, comment, task_id, tag, priority, due, position } => {
             if let Some(desc) = task {
                 let actor_ids: Vec<String> = actors.as_ref()
                     .map(|s| s.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect())
                     .unwrap_or_default();
                 let prio = priority.as_deref().and_then(Priority::from_str);
                 let due_date = due.as_deref().and_then(|d| NaiveDateTime::parse_from_str(d, "%Y-%m-%d %H:%M").ok());
-                commands::add_task(desc, &actor_ids, tag, prio, due_date, None)
+                commands::add_task(desc, &actor_ids, tag, prio, due_date, None, position.clone())
             } else if let Some(pseudo) = actor {
                 commands::add_actor(Some(pseudo), pic.as_deref())
             } else if let Some(text) = comment {
@@ -193,8 +214,8 @@ fn main() {
             let prio_filter = priority.as_deref().and_then(Priority::from_str);
             commands::list(*tasks, *actors, *comments, tag, prio_filter, search.as_deref(), *overdue)
         }
-        Commands::Update { id, description, due, actors, comments, name, pic, text, tag, priority } => {
-            commands::update(id, description.as_deref(), due.as_deref(), name.as_deref(), text.as_deref(), actors.as_deref(), comments.as_deref(), pic.as_deref(), tag.as_deref(), priority.as_deref(), None, None)
+        Commands::Update { id, description, due, actors, comments, name, pic, text, tag, priority, position } => {
+            commands::update(id, description.as_deref(), due.as_deref(), name.as_deref(), text.as_deref(), actors.as_deref(), comments.as_deref(), pic.as_deref(), tag.as_deref(), priority.as_deref(), None, None, position.as_deref())
         }
         Commands::Install => commands::install(),
         Commands::Completion { shell } => {
@@ -210,6 +231,8 @@ fn main() {
             commands::set_status(id, set, reason.as_deref())
         }
         Commands::Upgrade { yes } => commands::upgrade(*yes),
+        Commands::Cwi { format } => commands::cwi(format.as_deref()),
+        Commands::Scan => commands::scan(),
     };
 
     if let Err(e) = result {

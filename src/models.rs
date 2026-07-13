@@ -119,6 +119,8 @@ pub struct Task {
     pub tags: Vec<String>,
     pub priority: Option<Priority>,
     pub created: Option<NaiveDateTime>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub position: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

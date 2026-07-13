@@ -144,6 +144,34 @@
                 margin-right: auto;
                 letter-spacing: -0.01em;
             }
+            .format-switch {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                margin-right: 8px;
+            }
+            .format-switch button {
+                background: var(--bg);
+                border: 1px solid var(--border);
+                color: var(--text2);
+                padding: 4px 10px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.15s;
+                letter-spacing: 0.02em;
+                text-transform: uppercase;
+            }
+            .format-switch button:hover {
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+            .format-switch button.act {
+                background: var(--primary);
+                border-color: var(--primary);
+                color: #fff;
+            }
             .avatars {
                 display: flex;
                 align-items: center;
@@ -463,7 +491,7 @@
 
             .col-head {
                 display: grid;
-                grid-template-columns: 26px 1fr 130px 150px 100px 96px 24px;
+                grid-template-columns: 26px 1fr 130px 150px 130px 100px 96px 24px;
                 gap: 10px;
                 padding: 9px 15px;
                 font-size: 10.5px;
@@ -478,6 +506,21 @@
                 align-items: center;
                 gap: 4px;
             }
+            .t-pos {
+                font-size: 10px;
+                color: var(--text3);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                font-family: var(--font-mono);
+            }
+            .t-pos a {
+                color: var(--text3);
+                text-decoration: none;
+            }
+            .t-pos a:hover {
+                color: var(--primary);
+            }
 
             .task-item {
                 border-bottom: 1px solid var(--border);
@@ -487,7 +530,7 @@
             }
             .task-row {
                 display: grid;
-                grid-template-columns: 26px 1fr 130px 150px 100px 96px 24px;
+                grid-template-columns: 26px 1fr 130px 150px 130px 100px 96px 24px;
                 gap: 10px;
                 padding: 13px 15px 12px;
                 align-items: flex-start;
@@ -1126,7 +1169,8 @@
                     grid-template-columns: 22px 1fr 90px 30px;
                 }
                 .t-est,
-                .type-wrap {
+                .type-wrap,
+                .t-pos {
                     display: none;
                 }
             }
@@ -1179,6 +1223,7 @@
                     <svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                     <svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
                 </button>
+                <div class="format-switch" id="formatSwitch"></div>
                 <div class="avatars" id="hdr-avatars"></div>
                 <button
                     class="av-add"
@@ -1429,6 +1474,10 @@
                         rows="2"
                         placeholder="Raison si bloqué..."
                     ></textarea>
+                </div>
+                <div class="fg">
+                    <label>Position (code)</label
+                    ><input id="epos" placeholder="file:///path#Lline:col" />
                 </div>
                 <div class="fg">
                     <label>Personnes</label>
@@ -1695,6 +1744,33 @@
                 c.innerHTML = h;
             }
 
+            async function renderFormatSwitch() {
+                const c = document.getElementById("formatSwitch");
+                if (!c) return;
+                const r = await api("/api/formats");
+                const fmts = r.formats || [];
+                const cur = r.cwi || "md";
+                if (fmts.length < 2) { c.innerHTML = ""; return; }
+                let h = "";
+                fmts.forEach((f) => {
+                    const a = cur === f ? " act" : "";
+                    h += '<button class="' + a + '" data-fmt="' + f + '">' + f.toUpperCase() + "</button>";
+                });
+                c.innerHTML = h;
+                c.querySelectorAll("button").forEach((btn) => {
+                    btn.onclick = async function () {
+                        const fmt = this.dataset.fmt;
+                        if (fmt === cur) return;
+                        const r2 = await api("/api/cwi", { format: fmt });
+                        if (r2.ok) {
+                            await ld();
+                        } else {
+                            tt(r2.error, "e");
+                        }
+                    };
+                });
+            }
+
             // ── Pickers ──
             function uniqTags() {
                 const s = new Set();
@@ -1880,6 +1956,8 @@
                         ";color:" +
                         (prio === "high" ? "var(--prio-h-t)" : prio === "medium" ? "var(--prio-m-t)" : "var(--prio-l-t)") +
                         '">' + esc(t.priority) + "</span></div>";
+                if (t.position)
+                    h += '<div class="td-row"><span class="td-label">Position</span><a href="' + esc(t.position) + '" target="_blank" rel="noopener" style="color:var(--primary);font-size:12px;word-break:break-all">' + esc(t.position) + "</a></div>";
                 const tags = t.tags || [];
                 if (tags.length) {
                     h += '<div class="td-row"><span class="td-label">Tags</span>';
@@ -1933,6 +2011,7 @@
                 rL();
                 rK();
                 renderHeaderAvatars();
+                renderFormatSwitch();
             }
 
             // ── Status Picker ──
@@ -2020,7 +2099,7 @@
                     h += "</div>";
                     if (!collapsed) {
                         h +=
-                            '<div class="col-head"><span></span><span>Tâche</span><span>Échéance</span><span>Type</span><span>Personnes</span><span>Priorité</span><span></span></div>';
+                            '<div class="col-head"><span></span><span>Tâche</span><span>Échéance</span><span>Type</span><span>Position</span><span>Personnes</span><span>Priorité</span><span></span></div>';
                         items.forEach((t) => {
                             const prio = (t.priority || "").toLowerCase();
                             const prioHTML = prio
@@ -2109,6 +2188,10 @@
                                 "</div>";
                             h += '<div class="t-est">' + estHTML + "</div>";
                             h += typeHTML;
+                            let posHTML = t.position
+                                ? '<div class="t-pos"><a href="' + esc(t.position) + '" target="_blank" rel="noopener">' + esc(t.position.split('/').pop() || t.position) + "</a></div>"
+                                : '<div class="t-pos"><span class="prio-none">—</span></div>';
+                            h += posHTML;
                             h += peopleHTML;
                             h += prioHTML;
                             h +=
@@ -2195,6 +2278,9 @@
                                     "</span>";
                             });
                         h += "</div>";
+                        if (t.position)
+                            h +=
+                                '<div class="kbdue" style="font-size:10px">&#128279; <a href="' + esc(t.position) + '" target="_blank" rel="noopener" style="color:var(--text3);text-decoration:none">' + esc(t.position.split('/').pop() || t.position) + "</a></div>";
                         if (t.due)
                             h +=
                                 '<div class="kbdue">&#9200; ' +
@@ -2445,6 +2531,7 @@
                     t.priority || ""
                 ).toLowerCase();
                 document.getElementById("ebrt").value = t.blocked_reason || "";
+                document.getElementById("epos").value = t.position || "";
                 document.getElementById("m-edit").dataset.id = id;
                 om("edit");
                 rAPickers("ea", t.actors || []);
@@ -2471,6 +2558,9 @@
                     b.tags = b.tags ? b.tags + "," + ntag : ntag;
                 const br = document.getElementById("ebrt").value.trim();
                 if (br) b.blocked_reason = br;
+                const pos = document.getElementById("epos").value.trim();
+                if (pos) b.position = pos;
+                else b.position = "";
                 const r = await api("/api/update", b);
                 if (r.ok) {
                     tt("Mis à jour", "s");

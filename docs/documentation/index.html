@@ -49,6 +49,8 @@
       <li><a href="#creating-items">Creating Items</a></li>
       <li><a href="#reading-items">Reading Items</a></li>
       <li><a href="#modifying-items">Modifying Items</a></li>
+      <li><a href="#scan">scan</a></li>
+      <li><a href="#cwi">cwi</a></li>
       <li><a href="#install">install</a></li>
       <li><a href="#status-deletion">Status &amp; Deletion</a></li>
       <li><a href="#tags">tags</a></li>
@@ -72,13 +74,16 @@
       <h2>Getting Started</h2>
       <div class="cmd-block">
         <div class="cmd-name">init</div>
-        <div class="cmd-syntax">todo init [--force]</div>
-        <div class="cmd-desc">Create a new TODO.md file in the current directory. Fails if a valid TODO.md already exists unless --force is used.</div>
+        <div class="cmd-syntax">todo init [--force] [--yaml] [--both]</div>
+        <div class="cmd-desc">Create a new TODO file in the current directory. Supports Markdown (TODO.md), YAML (TODO.yaml), or both. Fails if a valid file already exists unless --force is used. When no flag is provided, prompts interactively.</div>
         <table class="cmd-flags">
           <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
-          <tr><td>--force</td><td>false</td><td>Overwrite existing TODO.md</td></tr>
+          <tr><td>--force</td><td>false</td><td>Overwrite existing TODO file</td></tr>
+          <tr><td>--yaml</td><td>false</td><td>Create TODO.yaml instead of TODO.md</td></tr>
+          <tr><td>--both</td><td>false</td><td>Create both TODO.md and TODO.yaml</td></tr>
         </table>
         <div class="cmd-example"><span class="prompt">$</span> todo init</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo init --yaml</div>
       </div>
     </div>
 
@@ -86,8 +91,8 @@
       <h2>Creating Items</h2>
       <div class="cmd-block">
         <div class="cmd-name">add --task</div>
-        <div class="cmd-syntax">todo add --task &lt;description&gt; [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--priority &lt;level&gt;] [--due &lt;date&gt;]</div>
-        <div class="cmd-desc">Add a new task with an auto-generated 4-character ID. Optionally assign actors, tags, priority, and due date.</div>
+        <div class="cmd-syntax">todo add --task &lt;description&gt; [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--priority &lt;level&gt;] [--due &lt;date&gt;] [--position &lt;url&gt;]</div>
+        <div class="cmd-desc">Add a new task with an auto-generated 4-character ID. Optionally assign actors, tags, priority, due date, and a code position URL.</div>
         <table class="cmd-flags">
           <tr><th>Flag</th><th>Default</th><th>Description</th></tr>
           <tr><td>--task</td><td>—</td><td>Task description (required)</td></tr>
@@ -95,8 +100,10 @@
           <tr><td>--tags</td><td>—</td><td>Comma-separated tags</td></tr>
           <tr><td>--priority</td><td>—</td><td>Priority level (low, medium, high)</td></tr>
           <tr><td>--due</td><td>—</td><td>Due date in YYYY-MM-DD HH:MM format</td></tr>
+          <tr><td>--position</td><td>—</td><td>Code position URL (e.g. file:///path/to/file#L42:10)</td></tr>
         </table>
         <div class="cmd-example"><span class="prompt">$</span> todo add --task "Build login" --actors u0v1 --priority high</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo add --task "Fix bug" --position "file:///C:/project/src/main.rs#L23:5"</div>
       </div>
       <div class="cmd-block">
         <div class="cmd-name">add --actor</div>
@@ -144,7 +151,7 @@
       <h2>Modifying Items</h2>
       <div class="cmd-block">
         <div class="cmd-name">update</div>
-        <div class="cmd-syntax">todo update &lt;id&gt; [--description &lt;text&gt;] [--due &lt;date&gt;] [--priority &lt;level&gt;] [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--blocked-reason &lt;text&gt;]</div>
+        <div class="cmd-syntax">todo update &lt;id&gt; [--description &lt;text&gt;] [--due &lt;date&gt;] [--priority &lt;level&gt;] [--actors &lt;ids&gt;] [--tags &lt;tags&gt;] [--blocked-reason &lt;text&gt;] [--position &lt;url&gt;]</div>
         <div class="cmd-desc">Update any item by its ID. Available flags depend on the item type (task, actor, or comment).</div>
         <table class="cmd-flags">
           <tr><th>Flag</th><th>Target</th><th>Description</th></tr>
@@ -154,11 +161,13 @@
           <tr><td>--actors</td><td>task</td><td>Replace assigned actor IDs (comma-separated)</td></tr>
           <tr><td>--tags</td><td>task</td><td>Replace tags (comma-separated)</td></tr>
           <tr><td>--blocked-reason</td><td>task</td><td>Reason when task is blocked</td></tr>
+          <tr><td>--position</td><td>task</td><td>Code position URL</td></tr>
           <tr><td>--name</td><td>actor</td><td>New pseudo</td></tr>
           <tr><td>--pic</td><td>actor</td><td>New picture URL/path</td></tr>
           <tr><td>--text</td><td>comment</td><td>New comment text</td></tr>
         </table>
         <div class="cmd-example"><span class="prompt">$</span> todo update a1b2 --description "Updated task" --priority high</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo update a1b2 --position "file:///C:/project/src/main.rs#L23:5"</div>
       </div>
       <div class="cmd-block">
         <div class="cmd-name">update (actor)</div>
@@ -171,6 +180,31 @@
         <div class="cmd-syntax">todo update &lt;id&gt; --text &lt;new-text&gt;</div>
         <div class="cmd-desc">Update a comment's text.</div>
         <div class="cmd-example"><span class="prompt">$</span> todo update c1d2 --text "Updated comment"</div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="scan">
+      <h2>Scan Source Code</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">scan</div>
+        <div class="cmd-syntax">todo scan</div>
+        <div class="cmd-desc">Recursively scans all source files in the current directory for <code>TODO:</code> comments and automatically adds them as tasks with their code position. Skips <code>TODO.md</code>, <code>TODO.yaml</code>, <code>.todo/</code>, <code>.git/</code>, <code>node_modules/</code>, and <code>target/</code>. Each detected comment becomes a task with its <strong>position</strong> column set to the exact file and line number.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo scan</div>
+        <div class="cmd-example"><span class="comment"># Scanned 47 files, found 3 TODO: comments</span></div>
+        <div class="cmd-example"><span class="comment">#   file://C:/project/src/main.rs#L15:10: "Refactor auth logic"</span></div>
+      </div>
+    </div>
+
+    <div class="cmd-group" id="cwi">
+      <h2>Switch Format</h2>
+      <div class="cmd-block">
+        <div class="cmd-name">cwi</div>
+        <div class="cmd-syntax">todo cwi [md|yaml]</div>
+        <div class="cmd-desc">Switch the current working file between Markdown (<code>TODO.md</code>) and YAML (<code>TODO.yaml</code>). With no argument, displays the current format. The format persists in <code>.todo/config</code> and affects all subsequent commands. Both files can coexist — switch freely between them.</div>
+        <div class="cmd-example"><span class="prompt">$</span> todo cwi yaml</div>
+        <div class="cmd-example"><span class="comment"># Switched to TODO.yaml</span></div>
+        <div class="cmd-example"><span class="prompt">$</span> todo cwi md</div>
+        <div class="cmd-example"><span class="comment"># Switched to TODO.md</span></div>
       </div>
     </div>
 
@@ -212,9 +246,10 @@
         <div class="cmd-syntax">todo dashboard</div>
         <div class="cmd-desc">Start the web dashboard server. Automatically finds an available port starting at 8383. Open http://127.0.0.1:8383 in your browser.</div>
         <div class="cmd-example"><span class="prompt">$</span> todo dashboard</div>
-        <div class="cmd-desc" style="margin-top:10px">The dashboard features two view modes:<br>
-          <strong>List view</strong> — tasks grouped by status with inline detail, comments, and CRUD modals.<br>
-          <strong>Kanban view</strong> — drag-and-drop columns by status with quick-add buttons.</div>
+        <div class="cmd-desc" style="margin-top:10px">The dashboard features three view modes:<br>
+          <strong>List view</strong> — tasks grouped by status with inline detail, comments, and CRUD modals. Displays the <strong>Position</strong> column linking to source code.<br>
+          <strong>Kanban view</strong> — drag-and-drop columns by status with quick-add buttons and position links.<br>
+          <strong>Format switcher</strong> — toggle between TODO.md and TODO.yaml directly from the header when both files exist.</div>
       </div>
     </div>
 
@@ -261,7 +296,7 @@
       <h2>File Format</h2>
       <div class="cmd-block">
         <div class="cmd-name">TODO.md</div>
-        <div class="cmd-desc">A plain Markdown document with three sections: Tasks, Actors, and Comments.</div>
+        <div class="cmd-desc">A plain Markdown document with three sections: Tasks, Actors, and Comments. When a task has a code position, it includes a <strong>Position</strong> field.</div>
         <div class="cmd-example">
 # Tasks
 
@@ -269,6 +304,7 @@
   - **Actors**: u0v1
   - **Priority**: high
   - **Created**: 2026-07-07 12:00
+  - **Position**: "file:///C:/project/src/main.rs#L15:10"
 
 - [x] x9k2 **Deploy to prod**
   - **Due**: 2026-07-15 18:00
@@ -288,13 +324,36 @@
   - **Actors**: u0v1
         </div>
       </div>
+      <div class="cmd-block">
+        <div class="cmd-name">TODO.yaml</div>
+        <div class="cmd-desc">An alternative YAML format for the same data model. Switch between formats with <code>todo cwi</code>.</div>
+        <div class="cmd-example">
+tasks:
+- id: a1b2
+  status: Todo
+  description: Build login
+  actors:
+  - u0v1
+  priority: High
+  created: 2026-07-07 12:00
+  position: "file:///C:/project/src/main.rs#L15:10"
+actors:
+- id: u0v1
+  pseudo: Alice
+  actor_type: Human
+comments:
+- id: c1d2
+  text: This is a comment
+  task_id: a1b2
+        </div>
+      </div>
     </div>
 
     <div class="cmd-group" id="skill">
       <h2>AI Agent Skill</h2>
       <div class="cmd-block">
         <div class="cmd-name">SKILL.md</div>
-        <div class="cmd-desc">A structured <a href="https://github.com/RayanBO/todo/blob/main/skills/SKILL.md">SKILL.md</a> is available to teach AI coding agents how to use <span class="mono">todo</span>. Includes all CLI commands, the Markdown data model, and the HTTP API route table.</div>
+        <div class="cmd-desc">A structured <a href="https://github.com/RayanBO/todo/blob/main/skills/SKILL.md">SKILL.md</a> is available to teach AI coding agents how to use <span class="mono">todo</span>. Includes all CLI commands (including <code>scan</code>, <code>cwi</code>), the Markdown and YAML data model, the <code>position</code> field, and the HTTP API route table.</div>
         <div class="cmd-syntax">npx skills add rayanbo/todo/skills</div>
         <div class="cmd-example"><span class="comment"># Or copy the file manually</span></div>
         <div class="cmd-example"><span class="prompt">$</span> curl -LO https://raw.githubusercontent.com/RayanBO/todo/main/skills/SKILL.md</div>

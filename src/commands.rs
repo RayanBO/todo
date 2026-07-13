@@ -90,10 +90,19 @@ pub fn init(force: bool, yaml: bool, both: bool) -> Result<(), String> {
     } else if both {
         (false, true)
     } else if !Config::any_exists() {
-        // prompt user if no flags and no files exist
         prompt_format()?
     } else {
-        (false, false)
+        // files exist, no flag given — guide the user
+        let md = Config::md_exists();
+        let yml = Config::yaml_exists();
+        if md && yml {
+            return Err("TODO.md and TODO.yaml already exist. Use --force to overwrite.".to_string());
+        }
+        if md {
+            return Err("TODO.md already exists. Use --yaml to create TODO.yaml, or --force to overwrite.".to_string());
+        }
+        // yaml exists but not md
+        return Err("TODO.yaml already exists. Use `todo init` (without --yaml) to create TODO.md, or --force to overwrite.".to_string());
     };
 
     let init_md = !use_yaml || use_both;

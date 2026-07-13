@@ -57,6 +57,7 @@ pub fn parse_todo(content: &str) -> Result<TodoFile, String> {
                         tags: Vec::new(),
                         priority: None,
                         created: None,
+                        position: None,
                     };
 
                     while let Some(peek) = lines.peek() {

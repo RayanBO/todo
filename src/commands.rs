@@ -203,7 +203,7 @@ pub fn scan() -> Result<(), String> {
                     let col = m.start() + 5;
                     let pos = format!("file:///{file}#L{line}:{col}", file = absolute.replace('\\', "/"), line = line_no + 1);
                     if !found.iter().any(|(_, _, t)| t == &pos) {
-                        found.push((text, line_no + 1, pos));
+                        found.push((text.to_string(), line_no + 1, pos));
                     }
                 }
             }

@@ -1,57 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-    <Product
-        Id="*"
-        Name="todo"
-        Language="1033"
-        Version="$(var.Version)"
-        Manufacturer="Rayan Rav"
-        UpgradeCode="B8C4D0E2-F3A5-6789-01BC-DEF123456789">
-
-        <Package
-            InstallerVersion="200"
-            Compressed="yes"
-            InstallScope="perMachine"
-            Platform="x64"
-            Manufacturer="Rayan Rav"
-            Description="todo - TODO CLI" />
-
-        <MajorUpgrade
-            DowngradeErrorMessage="A newer version of todo is already installed."
-            Schedule="afterInstallValidate" />
-
-        <MediaTemplate EmbedCab="yes" />
-
-        <Directory Id="TARGETDIR" Name="SourceDir">
-            <Directory Id="ProgramFiles64Folder">
-                <Directory Id="INSTALLDIR" Name="todo">
-                    <Component Id="MainBinary" Guid="*" Win64="yes">
-                        <File
-                            Id="todo.exe"
-                            Name="todo.exe"
-                            Source="$(var.BinaryPath)"
-                            KeyPath="yes" />
-
-                        <Environment
-                            Id="PATH"
-                            Name="PATH"
-                            Value="[INSTALLDIR]"
-                            Permanent="no"
-                            Part="last"
-                            Action="set"
-                            System="yes" />
-                    </Component>
-                </Directory>
-            </Directory>
+<?xml version='1.0' encoding='windows-1252'?>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product Name='Todo CLI' Id='*' UpgradeCode='7E3C5A12-8E4F-4B6D-9C1A-2F5E8D7B3C6A' Language='1033' Codepage='1252' Version='$(var.Version)' Manufacturer='Rayan Rav'>
+    <Package Id='*' Keywords='Installer' Description='Todo CLI $(var.Version)' Comments='Portable CLI for TODO.md files' Manufacturer='Rayan Rav' InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+    <Media Id='1' Cabinet='todo.cab' EmbedCab='yes' />
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='ProgramFiles64Folder' Name='PFiles'>
+        <Directory Id='INSTALLDIR' Name='todo'>
+          <Component Id='MainExecutable' Guid='A1B2C3D4-E5F6-7890-ABCD-EF1234567890'>
+            <File Id='TodoEXE' Name='todo.exe' DiskId='1' Source='target\release\todo.exe' KeyPath='yes' />
+            <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' Permanent='no' Part='last' Action='set' System='yes' />
+          </Component>
         </Directory>
-
-        <Feature Id="ProductFeature" Title="todo" Level="1">
-            <ComponentRef Id="MainBinary" />
-        </Feature>
-
-        <Property Id="ARPHELPLINK" Value="https://github.com/rayanbo/todo" />
-        <Property Id="ARPURLINFOABOUT" Value="https://github.com/rayanbo/todo" />
-        <Property Id="ARPNOREPAIR" Value="1" />
-        <Property Id="ARPNOMODIFY" Value="1" />
-    </Product>
+      </Directory>
+    </Directory>
+    <Feature Id='Complete' Level='1'>
+      <ComponentRef Id='MainExecutable' />
+    </Feature>
+    <Property Id='ARPURLINFOABOUT' Value='https://github.com/RayanBO/todo' />
+  </Product>
 </Wix>

@@ -64,7 +64,7 @@ jobs:
         shell: pwsh
         run: |
           $ver = "$env:GITHUB_REF_NAME" -replace "^v", ""
-          & "${env:WIX}bin\candle.exe" wix\main.wxs "-dVersion=$ver" -out todo.wixobj
+          & "${env:WIX}bin\candle.exe" wix\main.wxs "-dVersion=$ver" "-dTargetDir=$pwd\target\${{ matrix.target }}\release" -out todo.wixobj
           & "${env:WIX}bin\light.exe" todo.wixobj "-out" "todo-x64-$env:GITHUB_REF_NAME.msi"
       - name: upload msi
         if: matrix.os == 'windows-latest'

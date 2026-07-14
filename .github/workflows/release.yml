@@ -1,158 +1,48 @@
-name: Release
-
+name: release
 on:
   push:
-    tags:
-      - "v*"
-
+    tags: ["v*"]
 jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
   build:
-    name: Build — ${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
-
+    needs: create
     strategy:
       matrix:
         include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact: todo-windows-x64.exe
-            binary: target/release/todo.exe
-
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            artifact: todo-linux-x64
-            binary: target/x86_64-unknown-linux-gnu/release/todo
-
+            suffix: ""
+            name: linux-x64
           - os: macos-latest
             target: aarch64-apple-darwin
-            artifact: todo-macos-arm64
-            binary: target/aarch64-apple-darwin/release/todo
-
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact: todo-macos-x64
-            binary: target/x86_64-apple-darwin/release/todo
-
+            suffix: ""
+            name: macos-arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            suffix: .exe
+            name: x64
+    runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Installer Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-
-      - name: Cache Cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Compiler (Windows)
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        run: cargo build --release
-
-      - name: Compiler (cross)
-        if: matrix.target != 'x86_64-pc-windows-msvc'
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Extraire version
-        id: ver
-        shell: bash
-        run: echo "ver=$(sed -n 's/^version = \"\(.*\)\"/\1/p' Cargo.toml)" >> $GITHUB_OUTPUT
-
-      - name: Renommer le binaire
-        shell: bash
-        run: |
-          ver="${{ steps.ver.outputs.ver }}"
-          case "${{ matrix.artifact }}" in
-            todo-windows-x64.exe)
-              versioned="todo-x64-v${ver}.exe"
-              generic="todo-x64.exe"
-              ;;
-            todo-linux-x64)
-              versioned="todo-linux-x64-v${ver}"
-              generic="todo-linux-x64"
-              ;;
-            todo-macos-arm64)
-              versioned="todo-macos-arm64-v${ver}"
-              generic="todo-macos-arm64"
-              ;;
-            todo-macos-x64)
-              versioned="todo-macos-x64-v${ver}"
-              generic="todo-macos-x64"
-              ;;
-          esac
-          cp ${{ matrix.binary }} "$versioned"
-          cp ${{ matrix.binary }} "$generic"
-          echo "versioned=$versioned" >> $GITHUB_ENV
-          echo "generic=$generic" >> $GITHUB_ENV
-
-      - name: Install WiX
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        shell: pwsh
-        run: |
-          Invoke-RestMethod -Uri "https://github.com/wixtoolset/wix3/releases/download/wix3112rtm/wix311-binaries.zip" -OutFile wix.zip
-          Expand-Archive -Path wix.zip -DestinationPath wix -Force
-
-      - name: Build MSI
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $ver = Select-String -Path Cargo.toml -Pattern '^version = "(\d+\.\d+\.\d+)"' | ForEach-Object { $_.Matches.Groups[1].Value }
-          Write-Host "Version: $ver"
-          New-Item -ItemType Directory -Force -Path target\wix | Out-Null
-          Write-Host "Compiling wxs..."
-          & .\wix\candle.exe -dVersion="$ver" -dBinaryPath="$pwd\target\release\todo.exe" -out target\wix\todo.wixobj wix\main.wxs
-          if ($LASTEXITCODE -ne 0) { throw "candle failed ($LASTEXITCODE)" }
-          Write-Host "Linking msi..."
-          & .\wix\light.exe -cultures:null -out "target\wix\todo-$ver.msi" target\wix\todo.wixobj
-          if ($LASTEXITCODE -ne 0) { throw "light failed ($LASTEXITCODE)" }
-          Copy-Item "target\wix\todo-$ver.msi" "todo-x64-v${ver}.msi"
-          Copy-Item "target\wix\todo-$ver.msi" "todo-x64.msi"
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.versioned }}
-          path: |
-            ${{ env.versioned }}
-            ${{ env.generic }}
-
-      - name: Upload MSI
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        uses: actions/upload-artifact@v4
-        with:
-          name: todo-x64-v${{ steps.ver.outputs.ver }}.msi
-          path: |
-            todo-x64-v${{ steps.ver.outputs.ver }}.msi
-            todo-x64.msi
-
-  release:
-    name: Créer la Release GitHub
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Télécharger tous les binaires
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: Créer la Release et uploader les binaires
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/*
-          generate_release_notes: true
+      - run: cargo build --release --target ${{ matrix.target }}
+      - name: upload
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          SRC="target/${{ matrix.target }}/release/todo${{ matrix.suffix }}"
+          cp "$SRC" "todo-${{ matrix.name }}${{ matrix.suffix }}"
+          cp "$SRC" "todo-${{ matrix.name }}-${{ github.ref_name }}${{ matrix.suffix }}"
+          gh release upload "${{ github.ref_name }}" \
+            "todo-${{ matrix.name }}${{ matrix.suffix }}" \
+            "todo-${{ matrix.name }}-${{ github.ref_name }}${{ matrix.suffix }}" \
+            --clobber

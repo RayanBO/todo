@@ -6,7 +6,7 @@
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFiles64Folder' Name='PFiles'>
         <Directory Id='INSTALLDIR' Name='todo'>
-          <Component Id='MainExecutable' Guid='A1B2C3D4-E5F6-7890-ABCD-EF1234567890'>
+          <Component Id='MainExecutable' Guid='A1B2C3D4-E5F6-7890-ABCD-EF1234567890' Win64='yes'>
             <File Id='TodoEXE' Name='todo.exe' DiskId='1' Source='$(var.TargetDir)\todo.exe' KeyPath='yes' />
             <Environment Id='PATH' Name='PATH' Value='[INSTALLDIR]' Permanent='no' Part='last' Action='set' System='yes' />
           </Component>

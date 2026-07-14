@@ -30,7 +30,6 @@ jobs:
             target: aarch64-apple-darwin
             suffix: ""
             name: macos-arm64
-
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             suffix: .exe
@@ -42,25 +41,33 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - run: cargo build --release --target ${{ matrix.target }}
-      - name: upload exe
+      - name: upload binary
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           VER="${{ github.ref_name }}"
-          SRC="target/${{ matrix.target }}/release/todo.exe"
-          cp "$SRC" "todo-x64.exe"
-          cp "$SRC" "todo-x64-${VER}.exe"
-          gh release upload "$VER" "todo-x64.exe" "todo-x64-${VER}.exe" --clobber
+          NAME="${{ matrix.name }}"
+          SUFFIX="${{ matrix.suffix }}"
+          SRC="target/${{ matrix.target }}/release/todo${SUFFIX}"
+          cp "${SRC}" "todo-${NAME}${SUFFIX}"
+          cp "${SRC}" "todo-${NAME}-${VER}${SUFFIX}"
+          gh release upload "${VER}" \
+            "todo-${NAME}${SUFFIX}" \
+            "todo-${NAME}-${VER}${SUFFIX}" \
+            --clobber
       - name: install WiX
+        if: matrix.os == 'windows-latest'
         run: choco install wixtoolset --no-progress -y
       - name: build msi
+        if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
           $ver = "$env:GITHUB_REF_NAME" -replace "^v", ""
           & "${env:WIX}bin\candle.exe" wix\main.wxs "-dVersion=$ver" -out todo.wixobj
           & "${env:WIX}bin\light.exe" todo.wixobj "-out" "todo-x64-$env:GITHUB_REF_NAME.msi"
       - name: upload msi
+        if: matrix.os == 'windows-latest'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash

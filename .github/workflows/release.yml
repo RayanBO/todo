@@ -23,6 +23,10 @@ jobs:
             target: aarch64-apple-darwin
             suffix: ""
             name: macos-arm64
+          - os: macos-13
+            target: x86_64-apple-darwin
+            suffix: ""
+            name: macos-x64
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             suffix: .exe

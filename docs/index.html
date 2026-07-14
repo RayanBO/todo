@@ -417,16 +417,19 @@ fetch("https://api.github.com/repos/RayanBO/todo/releases/latest")
     if (tag && data.tag_name) tag.textContent = data.tag_name;
     document.querySelectorAll(".platform-dl[data-file]").forEach((span) => {
       const key = span.dataset.file;
+      const tagVer = data.tag_name.replace(/^v/, "");
       const vnames = {
-        windows: `todo-x64-v${data.tag_name.replace(/^v/, "")}.exe`,
-        msi: `todo-x64-v${data.tag_name.replace(/^v/, "")}.msi`,
-        "macos-arm64": `todo-macos-arm64-v${data.tag_name.replace(/^v/, "")}`,
-        "linux-x64": `todo-linux-x64-v${data.tag_name.replace(/^v/, "")}`,
+        windows: `todo-x64-v${tagVer}.exe`,
+        msi: `todo-x64-v${tagVer}.msi`,
+        "macos-arm64": `todo-macos-arm64-v${tagVer}`,
+        "macos-x64": `todo-macos-x64-v${tagVer}`,
+        "linux-x64": `todo-linux-x64-v${tagVer}`,
       };
       const unames = {
         windows: "todo-x64.exe",
         msi: "todo-x64.msi",
         "macos-arm64": "todo-macos-arm64",
+        "macos-x64": "todo-macos-x64",
         "linux-x64": "todo-linux-x64",
       };
       const link = span.querySelector("a");

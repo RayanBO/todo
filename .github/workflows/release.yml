@@ -2,14 +2,21 @@ name: release
 on:
   push:
     tags: ["v*"]
+permissions:
+  contents: write
 jobs:
   create:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
+      - shell: bash
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --notes "" \
+            --target "${{ github.sha }}"
+        env:
+          GH_TOKEN: ${{ github.token }}
   build:
     needs: create
     strategy:
@@ -43,10 +50,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          SRC="target/${{ matrix.target }}/release/todo${{ matrix.suffix }}"
-          cp "$SRC" "todo-${{ matrix.name }}${{ matrix.suffix }}"
-          cp "$SRC" "todo-${{ matrix.name }}-${{ github.ref_name }}${{ matrix.suffix }}"
-          gh release upload "${{ github.ref_name }}" \
-            "todo-${{ matrix.name }}${{ matrix.suffix }}" \
-            "todo-${{ matrix.name }}-${{ github.ref_name }}${{ matrix.suffix }}" \
+          VER="${{ github.ref_name }}"
+          NAME="${{ matrix.name }}"
+          SUFFIX="${{ matrix.suffix }}"
+          SRC="target/${{ matrix.target }}/release/todo${SUFFIX}"
+          cp "${SRC}" "todo-${NAME}${SUFFIX}"
+          cp "${SRC}" "todo-${NAME}-${VER}${SUFFIX}"
+          gh release upload "${VER}" \
+            "todo-${NAME}${SUFFIX}" \
+            "todo-${NAME}-${VER}${SUFFIX}" \
             --clobber

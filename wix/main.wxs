@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='windows-1252'?>
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Product Name='Todo CLI' Id='*' UpgradeCode='7E3C5A12-8E4F-4B6D-9C1A-2F5E8D7B3C6A' Language='1033' Codepage='1252' Version='$(var.Version)' Manufacturer='Rayan Rav'>
-    <Package Id='*' Keywords='Installer' Description='Todo CLI $(var.Version)' Comments='Portable CLI for TODO.md files' Manufacturer='Rayan Rav' InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+    <Package Id='*' Keywords='Installer' Description='Todo CLI $(var.Version)' Comments='Portable CLI for TODO.md files' Manufacturer='Rayan Rav' InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' Platform='x64' />
     <Media Id='1' Cabinet='todo.cab' EmbedCab='yes' />
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <Directory Id='ProgramFiles64Folder' Name='PFiles'>

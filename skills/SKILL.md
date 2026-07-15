@@ -19,7 +19,6 @@ description: >
 
 ### Windows (MSI)
 ```sh
-# Download and run the installer
 curl -LO https://github.com/RayanBO/todo/releases/latest/download/todo-x64.msi
 todo-x64.msi
 ```
@@ -51,76 +50,31 @@ cargo install todo-cli
 ## Quick Start
 
 ```bash
-todo init
+todo init                # interactive — prompts for format
+todo init --md           # create TODO.md directly
 todo add --task "My task" --actors u0v1 --priority high
 todo list
 todo dashboard
 ```
 
-### Auto-detect TODOs in source code
-```bash
-todo scan
-```
+## Config
 
-Scans all source files for `TODO:` comments and adds them as tasks with code positions. Switch formats anytime:
-
-```bash
-todo cwi yaml   # use TODO.yaml instead of TODO.md
-todo cwi md     # switch back to TODO.md
-```
-
-## Project State
-
-A project lives in a single file — either `TODO.md` (Markdown) or `TODO.yaml` (YAML). Switch between formats with `todo cwi`. The file has three sections:
-
-- `# Tasks` — array of task objects
-- `# Actors` — array of actor objects
-- `# Comments` — array of comment objects
-
-### Task fields
-
-| Field | Type | Description |
-|---|---|---|---|
-| `id` | string | 4-char alphanumeric (auto-generated) |
-| `description` | string | Task description |
-| `status` | "todo"\|"en-cours"\|"done"\|"bloqued" | Current status |
-| `priority` | "low"\|"medium"\|"high"\|null | Priority level |
-| `tags` | string[] | Labels |
-| `actors` | string[] | Actor IDs assigned |
-| `created` | datetime\|null | Creation timestamp |
-| `due` | datetime\|null | Due date |
-| `blocked_reason` | string\|null | Reason if blocked |
-| `comments` | string[] | Comment IDs |
-| `position` | string\|null | Code position URL (e.g. `file:///path/to/file#L42:10`) |
-
-### Actor fields
-
-| Field | Type |
-|---|---|
-| `id` | 4-char alphanumeric |
-| `pseudo` | string |
-| `pic` | string\|null |
-| `actor_type` | "Human"\|"AgentIa"\|null |
-
-### Comment fields
-
-| Field | Type |
-|---|---|
-| `id` | 4-char alphanumeric |
-| `text` | string |
-| `task` | string (parent task ID) |
-| `actors` | string[] |
+A `.todo/config` file stores the current working format. Created automatically when you switch formats or init with a specific format. Content is `md` or `yaml`.
 
 ## CLI Commands
 
 ### `todo init`
-Initialize a new TODO file. Supports both Markdown and YAML formats.
+Create a new TODO file. Supports interactive prompts and explicit flags.
 
 ```bash
-todo init [--force] [--yaml] [--both]
+todo init [--force] [--yaml] [--md] [--both]
 ```
 
-- `--yaml` — create `TODO.yaml` instead of `TODO.md`
+- No flags and no file exists → interactive prompt: "Initialize TODO.md? (Y/n)" or "Initialize TODO.yaml? (Y/n)"
+- No flags but one format exists → "Checking..." → "Initialize TODO.yaml? (Y/n)"
+- No flags but both exist → error with `--force` suggestion
+- `--yaml` — create `TODO.yaml`
+- `--md` — create `TODO.md`
 - `--both` — create both `TODO.md` and `TODO.yaml`
 - `--force` — overwrite existing file(s)
 
@@ -153,7 +107,7 @@ todo add --comment <text> --task-id <id>
 ```
 
 ### `todo list`
-List items.
+List items. Shows tasks with status, priority, actors, tags. Supports filtering.
 
 ```bash
 todo list [--tasks] [--actors] [--comments] [--status <status>] [--search <query>] [--tag <labels>] [--priority <level>] [--overdue]
@@ -178,12 +132,16 @@ todo status <id> --set <status> [--reason <text>]
 - `--set` — `todo|en-cours|done|bloqued`
 - `--reason` — required when setting to `bloqued`
 
-### `todo delete`
-Delete an item by ID. Cascades to all references.
+### `todo cwi`
+Switch current working file format between Markdown and YAML.
 
 ```bash
-todo delete <id>
+todo cwi [md|yaml]
 ```
+
+- With no argument — shows current format (reads `.todo/config`)
+- With format — switches to that format (target file must exist)
+- Stores preference in `.todo/config`
 
 ### `todo scan`
 Recursively scan source files for `TODO:` comments and add them as tasks with code positions.
@@ -192,16 +150,7 @@ Recursively scan source files for `TODO:` comments and add them as tasks with co
 todo scan
 ```
 
-Scans all files (except `TODO.md`, `TODO.yaml`, `.todo/`, `.git/`, `node_modules/`, `target/`, binary files). Each found comment becomes a new task with its `position` set to the exact file location.
-
-### `todo cwi`
-Switch between Markdown and YAML format.
-
-```bash
-todo cwi [md|yaml]
-```
-
-With no argument, shows the current format. Requires the target format's file to exist.
+Skips `.todo/`, `.git/`, `node_modules/`, `target/`, `.opencode/`, `.agents/`, binary/media files, and existing TODO files. Each found comment becomes a new task with `position` set to the exact file location. Already tracked tasks (by position) are skipped.
 
 ### `todo tags`
 List all tags with task counts.
@@ -217,6 +166,18 @@ Search tasks by query text.
 todo search <query>
 ```
 
+### `todo upgrade`
+Check for updates on GitHub and upgrade the binary.
+
+```bash
+todo upgrade [--yes]
+```
+
+- Fetches the latest release tag from GitHub API
+- Compares with current version
+- Downloads and replaces the binary (Windows only)
+- `--yes` — skip confirmation prompt
+
 ### `todo completion`
 Generate shell completion scripts.
 
@@ -231,12 +192,61 @@ Copy binary to PATH (Windows).
 todo install
 ```
 
+### `todo delete`
+Delete an item by ID. Cascades to all references.
+
+```bash
+todo delete <id>
+```
+
 ### `todo dashboard`
-Start the web dashboard server.
+Start the web dashboard server on port 8383.
 
 ```bash
 todo dashboard
 ```
+
+## Project State
+
+A project lives in a single file — either `TODO.md` (Markdown) or `TODO.yaml` (YAML). Switch between formats with `todo cwi`. The file has three sections:
+
+- `# Tasks` — array of task objects
+- `# Actors` — array of actor objects
+- `# Comments` — array of comment objects
+
+### Task fields
+
+| Field | Type | Description |
+|---|---|---|---|---|
+| `id` | string | 4-char alphanumeric (auto-generated) |
+| `description` | string | Task description |
+| `status` | "todo"\|"en-cours"\|"done"\|"bloqued" | Current status |
+| `priority` | "low"\|"medium"\|"high"\|null | Priority level |
+| `tags` | string[] | Labels |
+| `actors` | string[] | Actor IDs assigned |
+| `created` | datetime\|null | Creation timestamp |
+| `due` | datetime\|null | Due date |
+| `blocked_reason` | string\|null | Reason if blocked |
+| `comments` | string[] | Comment IDs |
+| `position` | string\|null | Code position URL (e.g. `file:///path/to/file#L42:10`) |
+
+### Actor fields
+
+| Field | Type |
+|---|---|
+| `id` | 4-char alphanumeric |
+| `pseudo` | string |
+| `pic` | string\|null |
+| `actor_type` | "Human"\|"AgentIa"\|null |
+
+### Comment fields
+
+| Field | Type |
+|---|---|
+| `id` | 4-char alphanumeric |
+| `text` | string |
+| `task` | string (parent task ID) |
+| `actors` | string[] |
 
 ## HTTP API
 
@@ -256,9 +266,10 @@ The dashboard server exposes a JSON API at `/api` on `http://localhost:<port>` (
 
 ## Dashboard UI
 
-- **List view** — tasks grouped by status with detail panel and full CRUD, displays Position column with clickable links
-- **Kanban view** — 4 columns (Todo, En cours, Done, Bloqued) with drag & drop, shows position links
+- **List view** — tasks grouped by status with detail panel and full CRUD, displays Position column with copy button
+- **Kanban view** — 4 columns (Todo, En cours, Done, Bloqued) with drag & drop, shows position with copy button
 - **Format switcher** — toggle between TODO.md and TODO.yaml from the header
+- **Position field** — displayed as text with a `copy` button; clicking copies the full file URL to clipboard (no editor links)
 - **Modals** — add/edit tasks, actors, and comments inline, including the Position field
 - **Search & filter** — filter by actor, tag, priority, and status
 - **Theme** — dark/light mode with system preference detection
